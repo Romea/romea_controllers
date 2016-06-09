@@ -69,6 +69,12 @@ namespace ackermann_controller
     return true;
   }
 
+
+  bool Odometry::update(double linear_pos, double linear_speed, double front_steering, const ros::Time &time)
+  {
+	return true;
+  }
+
   void Odometry::updateOpenLoop(double linear, double angular, const ros::Time &time)
   {
     /// Save last linear and angular velocity:

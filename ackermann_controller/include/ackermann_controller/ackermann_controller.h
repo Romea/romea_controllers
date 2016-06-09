@@ -1,5 +1,5 @@
 
-#include <controller_interface/controller.h>
+#include <controller_interface/controller_base.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <pluginlib/class_list_macros.h>
 
@@ -23,11 +23,11 @@ namespace ackermann_controller{
    *  - a wheel collision geometry is a cylinder in the urdf
    *  - a wheel joint frame center's vertical projection on the floor must lie within the contact patch
    */
-  class DiffDriveController
-      : public controller_interface::Controller<hardware_interface::VelocityJointInterface>
+  class AckermannController
+      : public controller_interface::ControllerBase
   {
   public:
-    DiffDriveController();
+    AckermannController();
 
     /**
      * \brief Initialize controller
@@ -35,9 +35,20 @@ namespace ackermann_controller{
      * \param root_nh       Node handle at root namespace
      * \param controller_nh Node handle inside the controller namespace
      */
-    bool init(hardware_interface::VelocityJointInterface* hw,
+    virtual bool initRequest(hardware_interface::RobotHW *const robot_hw,
               ros::NodeHandle& root_nh,
-              ros::NodeHandle &controller_nh);
+              ros::NodeHandle &controller_nh,
+              ClaimedResources& claimed_resources);
+    /// Get the name of this controller's hardware interface type
+    std::string getHardwareInterfaceType() const
+    {
+      return "";
+    }
+
+    bool init(hardware_interface::PositionJointInterface* hw_pos,
+                                     hardware_interface::VelocityJointInterface* hw_vel,
+                                     ros::NodeHandle& root_nh,
+                                     ros::NodeHandle &controller_nh);
 
     /**
      * \brief Updates controller, i.e. computes the odometry and sets the new velocity commands
@@ -69,6 +80,8 @@ namespace ackermann_controller{
     /// Hardware handles:
     std::vector<hardware_interface::JointHandle> left_wheel_joints_;
     std::vector<hardware_interface::JointHandle> right_wheel_joints_;
+    std::vector<hardware_interface::JointHandle> left_steering_joints_;
+    std::vector<hardware_interface::JointHandle> right_steering_joints_;
 
     /// Velocity command related:
     struct Commands
@@ -109,6 +122,9 @@ namespace ackermann_controller{
 
     /// Number of wheel joints:
     size_t wheel_joints_size_;
+    /// Number of steering joints:
+    size_t steering_joints_size_;
+
 
     /// Speed limiters:
     Commands last1_cmd_;
@@ -161,5 +177,5 @@ namespace ackermann_controller{
 
   };
 
-  PLUGINLIB_EXPORT_CLASS(ackermann_controller::DiffDriveController, controller_interface::ControllerBase);
+  PLUGINLIB_EXPORT_CLASS(ackermann_controller::AckermannController, controller_interface::ControllerBase);
 } // namespace ackermann_controller

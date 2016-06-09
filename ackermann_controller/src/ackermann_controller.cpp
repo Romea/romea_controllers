@@ -69,7 +69,7 @@ static bool getWheelRadius(const boost::shared_ptr<const urdf::Link>& wheel_link
 
 namespace ackermann_controller{
 
-  DiffDriveController::DiffDriveController()
+  AckermannController::AckermannController()
     : open_loop_(false)
     , command_struct_()
     , wheel_separation_(0.0)
@@ -80,12 +80,66 @@ namespace ackermann_controller{
     , base_frame_id_("base_link")
     , enable_odom_tf_(true)
     , wheel_joints_size_(0)
+    , steering_joints_size_(0)
   {
   }
 
-  bool DiffDriveController::init(hardware_interface::VelocityJointInterface* hw,
-            ros::NodeHandle& root_nh,
-            ros::NodeHandle &controller_nh)
+  bool AckermannController::initRequest(hardware_interface::RobotHW *const robot_hw,
+                         ros::NodeHandle& root_nh,
+                         ros::NodeHandle& ctrlr_nh,
+                         ClaimedResources& claimed_resources)
+  {
+    if (state_ != CONSTRUCTED)
+    {
+      ROS_ERROR("The ackermann controller could not be created.");
+      return false;
+    }
+
+    hardware_interface::PositionJointInterface *const pos_joint_hw = robot_hw->get<hardware_interface::PositionJointInterface>();
+    hardware_interface::VelocityJointInterface *const vel_joint_hw = robot_hw->get<hardware_interface::VelocityJointInterface>();
+
+    if (pos_joint_hw == NULL)
+    {
+      ROS_ERROR("This controller requires a hardware interface of type '%s'."
+                " Make sure this is registered in the hardware_interface::RobotHW class.",
+                hardware_interface::internal::demangledTypeName<hardware_interface::PositionJointInterface>().c_str());
+      return false;
+    }
+    else if (vel_joint_hw == NULL)
+    {
+      ROS_ERROR("This controller requires a hardware interface of type '%s'."
+                " Make sure this is registered in the hardware_interface::RobotHW class.",
+                hardware_interface::internal::demangledTypeName<hardware_interface::PositionJointInterface>().c_str());
+      return false;
+    }
+
+    pos_joint_hw->clearClaims();
+    vel_joint_hw->clearClaims();
+    if(init(pos_joint_hw, vel_joint_hw, root_nh, ctrlr_nh) == false)
+    {
+      ROS_ERROR("Failed to initialize the controller");
+      return false;
+    }
+
+    claimed_resources.clear();
+    hardware_interface::InterfaceResources iface_res_pos(hardware_interface::internal::demangledTypeName<hardware_interface::PositionJointInterface>(),
+                                                         pos_joint_hw->getClaims());
+    claimed_resources.push_back(iface_res_pos);
+    pos_joint_hw->clearClaims();
+
+    hardware_interface::InterfaceResources iface_res_vel(hardware_interface::internal::demangledTypeName<hardware_interface::VelocityJointInterface>(),
+                                                         vel_joint_hw->getClaims());
+    claimed_resources.push_back(iface_res_vel);
+    vel_joint_hw->clearClaims();
+
+    state_ = INITIALIZED;
+    return true;
+  }
+
+  bool AckermannController::init(hardware_interface::PositionJointInterface* hw_pos,
+                                 hardware_interface::VelocityJointInterface* hw_vel,
+                                 ros::NodeHandle& root_nh,
+                                 ros::NodeHandle &controller_nh)
   {
     const std::string complete_ns = controller_nh.getNamespace();
     std::size_t id = complete_ns.find_last_of("/");
@@ -112,6 +166,29 @@ namespace ackermann_controller{
 
       left_wheel_joints_.resize(wheel_joints_size_);
       right_wheel_joints_.resize(wheel_joints_size_);
+    }
+
+    // Get steering joint names from the parameter server
+    std::vector<std::string> left_steering_names, right_steering_names;
+    if (!getWheelNames(controller_nh, "left_steering", left_steering_names) or
+        !getWheelNames(controller_nh, "right_steering", right_steering_names))
+    {
+      return false;
+    }
+
+    if (left_steering_names.size() != right_steering_names.size())
+    {
+      ROS_ERROR_STREAM_NAMED(name_,
+          "#left steerings (" << left_steering_names.size() << ") != " <<
+          "#right steerings (" << right_steering_names.size() << ").");
+      return false;
+    }
+    else
+    {
+      steering_joints_size_ = left_steering_names.size();
+
+      left_steering_joints_.resize(steering_joints_size_);
+      right_steering_joints_.resize(steering_joints_size_);
     }
 
     // Odometry related:
@@ -200,16 +277,26 @@ namespace ackermann_controller{
       ROS_INFO_STREAM_NAMED(name_,
                             "Adding left wheel with joint name: " << left_wheel_names[i]
                             << " and right wheel with joint name: " << right_wheel_names[i]);
-      left_wheel_joints_[i] = hw->getHandle(left_wheel_names[i]);  // throws on failure
-      right_wheel_joints_[i] = hw->getHandle(right_wheel_names[i]);  // throws on failure
+      left_wheel_joints_[i] = hw_vel->getHandle(left_wheel_names[i]);  // throws on failure
+      right_wheel_joints_[i] = hw_vel->getHandle(right_wheel_names[i]);  // throws on failure
     }
 
-    sub_command_ = controller_nh.subscribe("cmd_vel", 1, &DiffDriveController::cmdVelCallback, this);
+    // Get the steering joint object to use in the realtime loop
+    for (int i = 0; i < steering_joints_size_; ++i)
+    {
+      ROS_INFO_STREAM_NAMED(name_,
+                            "Adding left steering with joint name: " << left_steering_names[i]
+                            << " and right steering with joint name: " << right_steering_names[i]);
+      left_steering_joints_[i] = hw_vel->getHandle(left_steering_names[i]);  // throws on failure
+      right_steering_joints_[i] = hw_vel->getHandle(right_steering_names[i]);  // throws on failure
+    }
+
+    sub_command_ = controller_nh.subscribe("cmd_vel", 1, &AckermannController::cmdVelCallback, this);
 
     return true;
   }
 
-  void DiffDriveController::update(const ros::Time& time, const ros::Duration& period)
+  void AckermannController::update(const ros::Time& time, const ros::Duration& period)
   {
     // COMPUTE AND PUBLISH ODOMETRY
     if (open_loop_)
@@ -220,21 +307,41 @@ namespace ackermann_controller{
     {
       double left_pos  = 0.0;
       double right_pos = 0.0;
+      double left_vel  = 0.0;
+      double right_vel = 0.0;
       for (size_t i = 0; i < wheel_joints_size_; ++i)
       {
         const double lp = left_wheel_joints_[i].getPosition();
         const double rp = right_wheel_joints_[i].getPosition();
         if (std::isnan(lp) || std::isnan(rp))
           return;
-
         left_pos  += lp;
         right_pos += rp;
+
+        const double ls = left_wheel_joints_[i].getVelocity();
+        const double rs = right_wheel_joints_[i].getVelocity();
+        if (std::isnan(ls) || std::isnan(rs))
+          return;
+        left_vel  += ls;
+        right_vel += rs;
       }
       left_pos  /= wheel_joints_size_;
       right_pos /= wheel_joints_size_;
+      left_vel  /= wheel_joints_size_;
+      right_vel /= wheel_joints_size_;
+      double linear_pos = (left_pos + right_pos)/2.0;
+      double linear_vel = (left_vel + right_vel)/2.0;
+
+      double left_steering_pos = 0.0;
+      double right_steering_pos = 0.0;
+      if(left_steering_joints_.size() > 0)
+    	  left_steering_pos = left_steering_joints_[0].getPosition();
+      if(left_steering_joints_.size() > 0)
+    	  right_steering_pos = right_steering_joints_[0].getPosition();
+      double steering_pos = (left_steering_pos + right_steering_pos)/2.0;
 
       // Estimate linear and angular velocity using joint information
-      odometry_.update(left_pos, right_pos, time);
+      odometry_.update(linear_pos, linear_vel, steering_pos, time);
     }
 
     // Publish odometry message
@@ -306,7 +413,7 @@ namespace ackermann_controller{
     }
   }
 
-  void DiffDriveController::starting(const ros::Time& time)
+  void AckermannController::starting(const ros::Time& time)
   {
     brake();
 
@@ -316,12 +423,12 @@ namespace ackermann_controller{
     odometry_.init(time);
   }
 
-  void DiffDriveController::stopping(const ros::Time& /*time*/)
+  void AckermannController::stopping(const ros::Time& /*time*/)
   {
     brake();
   }
 
-  void DiffDriveController::brake()
+  void AckermannController::brake()
   {
     const double vel = 0.0;
     for (size_t i = 0; i < wheel_joints_size_; ++i)
@@ -329,9 +436,16 @@ namespace ackermann_controller{
       left_wheel_joints_[i].setCommand(vel);
       right_wheel_joints_[i].setCommand(vel);
     }
+
+    const double pos = 0.0;
+    for (size_t i = 0; i < steering_joints_size_; ++i)
+    {
+      left_steering_joints_[i].setCommand(pos);
+      right_steering_joints_[i].setCommand(pos);
+    }
   }
 
-  void DiffDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
+  void AckermannController::cmdVelCallback(const geometry_msgs::Twist& command)
   {
     if (isRunning())
     {
@@ -351,7 +465,7 @@ namespace ackermann_controller{
     }
   }
 
-  bool DiffDriveController::getWheelNames(ros::NodeHandle& controller_nh,
+  bool AckermannController::getWheelNames(ros::NodeHandle& controller_nh,
                               const std::string& wheel_param,
                               std::vector<std::string>& wheel_names)
   {
@@ -404,7 +518,7 @@ namespace ackermann_controller{
       return true;
   }
 
-  bool DiffDriveController::setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
+  bool AckermannController::setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
                              const std::string& left_wheel_name,
                              const std::string& right_wheel_name,
                              bool lookup_wheel_separation,
@@ -473,7 +587,7 @@ namespace ackermann_controller{
     return true;
   }
 
-  void DiffDriveController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
+  void AckermannController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
   {
     // Get and check params for covariances
     XmlRpc::XmlRpcValue pose_cov_list;

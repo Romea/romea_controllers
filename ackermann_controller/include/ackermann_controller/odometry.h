@@ -46,6 +46,8 @@ namespace ackermann_controller
      */
     bool update(double left_pos, double right_pos, const ros::Time &time);
 
+    bool update(double linear_pos, double linear_speed, double front_steering, const ros::Time &time);
+
     /**
      * \brief Updates the odometry class with latest velocity command
      * \param linear  Linear velocity [m/s]
