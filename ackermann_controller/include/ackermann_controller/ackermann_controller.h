@@ -107,6 +107,9 @@ namespace ackermann_controller{
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double wheel_radius_;
 
+    /// Wheel base (distance between front and rear wheel:
+    double wheel_base_;
+
     /// Wheel separation and radius calibration multipliers:
     double wheel_separation_multiplier_;
     double wheel_radius_multiplier_;

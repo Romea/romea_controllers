@@ -74,6 +74,7 @@ namespace ackermann_controller{
     , command_struct_()
     , wheel_separation_(0.0)
     , wheel_radius_(0.0)
+    , wheel_base_(0.0)
     , wheel_separation_multiplier_(1.0)
     , wheel_radius_multiplier_(1.0)
     , cmd_vel_timeout_(0.5)
@@ -250,6 +251,7 @@ namespace ackermann_controller{
     // If either parameter is not available, we need to look up the value in the URDF
     bool lookup_wheel_separation = !controller_nh.getParam("wheel_separation", wheel_separation_);
     bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
+    bool lookup_wheel_base = !controller_nh.getParam("wheel_base", wheel_base_);
 
     if (!setOdomParamsFromUrdf(root_nh,
                               left_wheel_names[0],
@@ -264,7 +266,8 @@ namespace ackermann_controller{
     // to set the odometry parameters
     const double ws = wheel_separation_multiplier_ * wheel_separation_;
     const double wr = wheel_radius_multiplier_     * wheel_radius_;
-    odometry_.setWheelParams(ws, wr);
+    const double wb = wheel_base_;
+    odometry_.setWheelParams(ws, wr, wb);
     ROS_INFO_STREAM_NAMED(name_,
                           "Odometry params : wheel separation " << ws
                           << ", wheel radius " << wr);
@@ -334,10 +337,11 @@ namespace ackermann_controller{
 
       double left_steering_pos = 0.0;
       double right_steering_pos = 0.0;
-      if(left_steering_joints_.size() > 0)
+      if(left_steering_joints_.size() > 0 && right_steering_joints_.size() > 0)
+      {
     	  left_steering_pos = left_steering_joints_[0].getPosition();
-      if(left_steering_joints_.size() > 0)
     	  right_steering_pos = right_steering_joints_[0].getPosition();
+      }
       double steering_pos = (left_steering_pos + right_steering_pos)/2.0;
 
       // Estimate linear and angular velocity using joint information
@@ -397,19 +401,32 @@ namespace ackermann_controller{
     last1_cmd_ = last0_cmd_;
     last0_cmd_ = curr_cmd;
 
+
+    const double angular_speed = odometry_.getAngular();
     // Apply multipliers:
     const double ws = wheel_separation_multiplier_ * wheel_separation_;
     const double wr = wheel_radius_multiplier_     * wheel_radius_;
 
     // Compute wheels velocities:
-    const double vel_left  = (curr_cmd.lin - curr_cmd.ang * ws / 2.0)/wr;
-    const double vel_right = (curr_cmd.lin + curr_cmd.ang * ws / 2.0)/wr;
+    const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin + angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
+    const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin - angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
+    const double vel_left_rear = curr_cmd.lin + angular_speed*ws/2;
+    const double vel_right_rear = curr_cmd.lin - angular_speed*ws/2;
 
     // Set wheels velocities:
-    for (size_t i = 0; i < wheel_joints_size_; ++i)
+    if(left_wheel_joints_.size() > 1 && right_wheel_joints_.size() > 1)
     {
-      left_wheel_joints_[i].setCommand(vel_left);
-      right_wheel_joints_[i].setCommand(vel_right);
+      left_wheel_joints_[0].setCommand(vel_left_front);
+      right_wheel_joints_[0].setCommand(vel_right_front);
+      left_wheel_joints_[1].setCommand(vel_left_rear);
+      right_wheel_joints_[1].setCommand(vel_right_rear);
+    }
+
+    const double front_steering = atan2(curr_cmd.ang*wheel_base_, odometry_.getLinear());
+    if(left_steering_joints_.size() > 0 && right_steering_joints_.size() > 0)
+    {
+      left_steering_joints_[0].setCommand(front_steering);
+      right_steering_joints_[0].setCommand(front_steering);
     }
   }
 

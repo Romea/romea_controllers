@@ -1,8 +1,8 @@
-<library path="lib/libdiff_drive_controller">
+<library path="lib/libackermann_controller">
 
-  <class name="diff_drive_controller/DiffDriveController" type="diff_drive_controller::DiffDriveController" base_class_type="controller_interface::ControllerBase">
+  <class name="ackermann_controller/AckermannController" type="ackermann_controller::AckermannController" base_class_type="controller_interface::ControllerBase">
     <description>
-      The DiffDriveController tracks velocity commands. It expects 2 VelocityJointInterface type of hardware interfaces.
+      The AckermannController tracks velocity commands. It expects 4 VelocityJointInterface type and 2 PositionJointInterface type of hardware interfaces.
     </description>
   </class>
 
