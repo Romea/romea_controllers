@@ -270,7 +270,8 @@ namespace ackermann_controller{
     odometry_.setWheelParams(ws, wr, wb);
     ROS_INFO_STREAM_NAMED(name_,
                           "Odometry params : wheel separation " << ws
-                          << ", wheel radius " << wr);
+                          << ", wheel radius " << wr
+                          << ", wheel base " << wb);
 
     setOdomPubFields(root_nh, controller_nh);
 
@@ -290,8 +291,8 @@ namespace ackermann_controller{
       ROS_INFO_STREAM_NAMED(name_,
                             "Adding left steering with joint name: " << left_steering_names[i]
                             << " and right steering with joint name: " << right_steering_names[i]);
-      left_steering_joints_[i] = hw_vel->getHandle(left_steering_names[i]);  // throws on failure
-      right_steering_joints_[i] = hw_vel->getHandle(right_steering_names[i]);  // throws on failure
+      left_steering_joints_[i] = hw_pos->getHandle(left_steering_names[i]);  // throws on failure
+      right_steering_joints_[i] = hw_pos->getHandle(right_steering_names[i]);  // throws on failure
     }
 
     sub_command_ = controller_nh.subscribe("cmd_vel", 1, &AckermannController::cmdVelCallback, this);
