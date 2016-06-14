@@ -342,6 +342,7 @@ namespace ackermann_controller{
       {
     	  left_steering_pos = left_steering_joints_[0].getPosition();
     	  right_steering_pos = right_steering_joints_[0].getPosition();
+        ROS_DEBUG_STREAM(" left_steering_pos "<<left_steering_pos<<" right_steering_pos "<<right_steering_pos);
       }
       double steering_pos = (left_steering_pos + right_steering_pos)/2.0;
 
@@ -408,12 +409,13 @@ namespace ackermann_controller{
     const double ws = wheel_separation_multiplier_ * wheel_separation_;
     const double wr = wheel_radius_multiplier_     * wheel_radius_;
 
+    //ROS_INFO_STREAM("angular_speed "<<angular_speed<<" odometry_.getLinear() "<<odometry_.getLinear());
     // Compute wheels velocities:
     const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin + angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
     const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin - angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
     const double vel_left_rear = curr_cmd.lin + angular_speed*ws/2;
     const double vel_right_rear = curr_cmd.lin - angular_speed*ws/2;
-
+    //ROS_INFO_STREAM("vel_left_front "<<vel_left_front<<" vel_left_rear "<<vel_right_rear);
     // Set wheels velocities:
     if(left_wheel_joints_.size() > 1 && right_wheel_joints_.size() > 1)
     {
@@ -423,9 +425,13 @@ namespace ackermann_controller{
       right_wheel_joints_[1].setCommand(vel_right_rear);
     }
 
-    const double front_steering = atan2(curr_cmd.ang*wheel_base_, odometry_.getLinear());
+    double front_steering = 0;
+    if(fabs(odometry_.getLinear()) > 0.01)
+      front_steering = atan(curr_cmd.ang*wheel_base_/odometry_.getLinear());
+
     if(left_steering_joints_.size() > 0 && right_steering_joints_.size() > 0)
     {
+      ROS_DEBUG_STREAM("front_steering "<<front_steering);
       left_steering_joints_[0].setCommand(front_steering);
       right_steering_joints_[0].setCommand(front_steering);
     }
