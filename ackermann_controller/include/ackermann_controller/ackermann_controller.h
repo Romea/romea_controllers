@@ -38,7 +38,7 @@ namespace ackermann_controller{
     virtual bool initRequest(hardware_interface::RobotHW *const robot_hw,
               ros::NodeHandle& root_nh,
               ros::NodeHandle &controller_nh,
-              ClaimedResources& claimed_resources);
+              std::set<std::string>& claimed_resources);
     /// Get the name of this controller's hardware interface type
     std::string getHardwareInterfaceType() const
     {

@@ -88,7 +88,7 @@ namespace ackermann_controller{
   bool AckermannController::initRequest(hardware_interface::RobotHW *const robot_hw,
                          ros::NodeHandle& root_nh,
                          ros::NodeHandle& ctrlr_nh,
-                         ClaimedResources& claimed_resources)
+                         std::set<std::string> &claimed_resources)
   {
     if (state_ != CONSTRUCTED)
     {
@@ -123,14 +123,12 @@ namespace ackermann_controller{
     }
 
     claimed_resources.clear();
-    hardware_interface::InterfaceResources iface_res_pos(hardware_interface::internal::demangledTypeName<hardware_interface::PositionJointInterface>(),
-                                                         pos_joint_hw->getClaims());
-    claimed_resources.push_back(iface_res_pos);
+    const std::set<std::string> claims_pos = pos_joint_hw->getClaims();
+    claimed_resources.insert(claims_pos.begin(), claims_pos.end());
     pos_joint_hw->clearClaims();
 
-    hardware_interface::InterfaceResources iface_res_vel(hardware_interface::internal::demangledTypeName<hardware_interface::VelocityJointInterface>(),
-                                                         vel_joint_hw->getClaims());
-    claimed_resources.push_back(iface_res_vel);
+    const std::set<std::string> claims_vel = vel_joint_hw->getClaims();
+    claimed_resources.insert(claims_vel.begin(), claims_vel.end());
     vel_joint_hw->clearClaims();
 
     state_ = INITIALIZED;
