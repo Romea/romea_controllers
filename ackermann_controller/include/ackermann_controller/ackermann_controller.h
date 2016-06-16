@@ -4,6 +4,7 @@
 #include <pluginlib/class_list_macros.h>
 
 #include <nav_msgs/Odometry.h>
+#include <ackermann_msgs/AckermannDrive.h>
 #include <tf/tfMessage.h>
 
 #include <realtime_tools/realtime_buffer.h>
@@ -88,13 +89,19 @@ namespace ackermann_controller{
     {
       double lin;
       double ang;
+      double steering;
       ros::Time stamp;
 
-      Commands() : lin(0.0), ang(0.0), stamp(0.0) {}
+      Commands() : lin(0.0), ang(0.0), steering(0.0), stamp(0.0) {}
     };
     realtime_tools::RealtimeBuffer<Commands> command_;
     Commands command_struct_;
     ros::Subscriber sub_command_;
+
+    /// Ackermann command related:
+    realtime_tools::RealtimeBuffer<Commands> command_ackermann_;
+    Commands command_struct_ackermann_;
+    ros::Subscriber sub_command_ackermann_;
 
     /// Odometry related:
     boost::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::Odometry> > odom_pub_;
@@ -123,6 +130,9 @@ namespace ackermann_controller{
     /// Whether to publish odometry to tf or not:
     bool enable_odom_tf_;
 
+    /// Whether the control is make with ackermann msg or twist msg:
+    bool enable_twist_cmd_;
+
     /// Number of wheel joints:
     size_t wheel_joints_size_;
     /// Number of steering joints:
@@ -146,6 +156,12 @@ namespace ackermann_controller{
      * \param command Velocity command message (twist)
      */
     void cmdVelCallback(const geometry_msgs::Twist& command);
+
+    /**
+     * \brief Velocity command callback
+     * \param command Velocity command message (twist)
+     */
+    void cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command);
 
     /**
      * \brief Get the wheel names from a wheel param

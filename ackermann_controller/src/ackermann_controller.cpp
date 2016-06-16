@@ -72,6 +72,7 @@ namespace ackermann_controller{
   AckermannController::AckermannController()
     : open_loop_(false)
     , command_struct_()
+    , command_struct_ackermann_()
     , wheel_separation_(0.0)
     , wheel_radius_(0.0)
     , wheel_base_(0.0)
@@ -80,6 +81,7 @@ namespace ackermann_controller{
     , cmd_vel_timeout_(0.5)
     , base_frame_id_("base_link")
     , enable_odom_tf_(true)
+    , enable_twist_cmd_(false)
     , wheel_joints_size_(0)
     , steering_joints_size_(0)
   {
@@ -225,6 +227,9 @@ namespace ackermann_controller{
     controller_nh.param("enable_odom_tf", enable_odom_tf_, enable_odom_tf_);
     ROS_INFO_STREAM_NAMED(name_, "Publishing to tf is " << (enable_odom_tf_?"enabled":"disabled"));
 
+    controller_nh.param("enable_twist_cmd", enable_twist_cmd_, enable_twist_cmd_);
+    ROS_INFO_STREAM_NAMED(name_, "Twist cmd is " << (enable_twist_cmd_?"enabled":"disabled")<<" (default is ackermann)");
+
     // Velocity and acceleration limits:
     controller_nh.param("linear/x/has_velocity_limits"    , limiter_lin_.has_velocity_limits    , limiter_lin_.has_velocity_limits    );
     controller_nh.param("linear/x/has_acceleration_limits", limiter_lin_.has_acceleration_limits, limiter_lin_.has_acceleration_limits);
@@ -293,7 +298,10 @@ namespace ackermann_controller{
       right_steering_joints_[i] = hw_pos->getHandle(right_steering_names[i]);  // throws on failure
     }
 
-    sub_command_ = controller_nh.subscribe("cmd_vel", 1, &AckermannController::cmdVelCallback, this);
+    if(enable_twist_cmd_ == true)
+      sub_command_ = controller_nh.subscribe("cmd_vel", 1, &AckermannController::cmdVelCallback, this);
+    else
+      sub_command_ackermann_ = controller_nh.subscribe("cmd_ackermann", 1, &AckermannController::cmdAckermannCallback, this);
 
     return true;
   }
@@ -382,7 +390,12 @@ namespace ackermann_controller{
 
     // MOVE ROBOT
     // Retreive current velocity command and time step:
-    Commands curr_cmd = *(command_.readFromRT());
+    Commands curr_cmd;
+    if(enable_twist_cmd_ == false)
+      curr_cmd = *(command_ackermann_.readFromRT());
+    else
+      curr_cmd = *(command_.readFromRT());
+
     const double dt = (time - curr_cmd.stamp).toSec();
 
     // Brake if cmd_vel has timeout:
@@ -390,6 +403,7 @@ namespace ackermann_controller{
     {
       curr_cmd.lin = 0.0;
       curr_cmd.ang = 0.0;
+      curr_cmd.steering = 0.0;
     }
 
     // Limit velocities and accelerations:
@@ -409,10 +423,10 @@ namespace ackermann_controller{
 
     //ROS_INFO_STREAM("angular_speed "<<angular_speed<<" odometry_.getLinear() "<<odometry_.getLinear());
     // Compute wheels velocities:
-    const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin + angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
-    const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin - angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
-    const double vel_left_rear = curr_cmd.lin + angular_speed*ws/2;
-    const double vel_right_rear = curr_cmd.lin - angular_speed*ws/2;
+    const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin - angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
+    const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin + angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
+    const double vel_left_rear = curr_cmd.lin - angular_speed*ws/2;
+    const double vel_right_rear = curr_cmd.lin + angular_speed*ws/2;
     //ROS_INFO_STREAM("vel_left_front "<<vel_left_front<<" vel_left_rear "<<vel_right_rear);
     // Set wheels velocities:
     if(left_wheel_joints_.size() > 1 && right_wheel_joints_.size() > 1)
@@ -424,8 +438,15 @@ namespace ackermann_controller{
     }
 
     double front_steering = 0;
-    if(fabs(odometry_.getLinear()) > 0.01)
-      front_steering = atan(curr_cmd.ang*wheel_base_/odometry_.getLinear());
+    if(enable_twist_cmd_ == true)
+    {
+      if(fabs(odometry_.getLinear()) > 0.01)
+        front_steering = atan(curr_cmd.ang*wheel_base_/odometry_.getLinear());
+    }
+    else
+    {
+      front_steering = curr_cmd.steering;
+    }
 
     if(left_steering_joints_.size() > 0 && right_steering_joints_.size() > 0)
     {
@@ -480,6 +501,26 @@ namespace ackermann_controller{
                              << "Ang: "   << command_struct_.ang << ", "
                              << "Lin: "   << command_struct_.lin << ", "
                              << "Stamp: " << command_struct_.stamp);
+    }
+    else
+    {
+      ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+    }
+  }
+
+  void AckermannController::cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command)
+  {
+    if (isRunning())
+    {
+      command_struct_ackermann_.steering   = command.steering_angle;
+      command_struct_ackermann_.lin   = command.speed;
+      command_struct_ackermann_.stamp = ros::Time::now();
+      command_ackermann_.writeFromNonRT (command_struct_ackermann_);
+      ROS_DEBUG_STREAM_NAMED(name_,
+                             "Added values to command. "
+                             << "Steering: "   << command_struct_ackermann_.steering << ", "
+                             << "Lin: "   << command_struct_ackermann_.lin << ", "
+                             << "Stamp: " << command_struct_ackermann_.stamp);
     }
     else
     {
