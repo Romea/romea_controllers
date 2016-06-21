@@ -72,10 +72,10 @@ namespace ackermann_controller
   }
 
 
-  bool Odometry::update(double linear_pos, double linear_speed, double front_steering, const ros::Time &time)
+  bool Odometry::update(double wheel_angular_pos, double wheel_angular_vel, double front_steering, const ros::Time &time)
   {
     /// Get current wheel joint positions:
-    const double wheel_cur_pos  = linear_pos  * wheel_radius_;
+    const double wheel_cur_pos  = wheel_angular_pos  * wheel_radius_;
     /// Estimate velocity of wheels using old and current position:
     const double wheel_est_vel  = wheel_cur_pos  - wheel_old_pos_;
     /// Update old position with current:
@@ -85,8 +85,8 @@ namespace ackermann_controller
     /// Integrate odometry:
     integrate_fun_(wheel_est_vel, angular);
 
-    linear_ = linear_speed;
-    angular_ = linear_speed * tan(front_steering) / wheel_base_;
+    linear_ = wheel_angular_vel*wheel_radius_;
+    angular_ = linear_ * tan(front_steering) / wheel_base_;
 
     return true;
   }

@@ -339,8 +339,8 @@ namespace ackermann_controller{
       right_pos /= wheel_joints_size_;
       left_vel  /= wheel_joints_size_;
       right_vel /= wheel_joints_size_;
-      double linear_pos = (left_pos + right_pos)/2.0;
-      double linear_vel = (left_vel + right_vel)/2.0;
+      double wheel_angular_pos = (left_pos + right_pos)/2.0;
+      double wheel_angular_vel = (left_vel + right_vel)/2.0;
 
       double left_steering_pos = 0.0;
       double right_steering_pos = 0.0;
@@ -352,8 +352,9 @@ namespace ackermann_controller{
       }
       double steering_pos = (left_steering_pos + right_steering_pos)/2.0;
 
+      ROS_DEBUG_STREAM("wheel_angular_vel "<<wheel_angular_vel<<" steering_pos "<<steering_pos);
       // Estimate linear and angular velocity using joint information
-      odometry_.update(linear_pos, linear_vel, steering_pos, time);
+      odometry_.update(wheel_angular_pos, wheel_angular_vel, steering_pos, time);
     }
 
     // Publish odometry message
@@ -421,13 +422,12 @@ namespace ackermann_controller{
     const double ws = wheel_separation_multiplier_ * wheel_separation_;
     const double wr = wheel_radius_multiplier_     * wheel_radius_;
 
-    //ROS_INFO_STREAM("angular_speed "<<angular_speed<<" odometry_.getLinear() "<<odometry_.getLinear());
+    ROS_DEBUG_STREAM("angular_speed "<<angular_speed<<" curr_cmd.lin "<<curr_cmd.lin<< " wr "<<wr);
     // Compute wheels velocities:
     const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin - angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
     const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin + angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
-    const double vel_left_rear = curr_cmd.lin - angular_speed*ws/2;
-    const double vel_right_rear = curr_cmd.lin + angular_speed*ws/2;
-    //ROS_INFO_STREAM("vel_left_front "<<vel_left_front<<" vel_left_rear "<<vel_right_rear);
+    const double vel_left_rear = (curr_cmd.lin - angular_speed*ws/2)/wr;
+    const double vel_right_rear = (curr_cmd.lin + angular_speed*ws/2)/wr;
     // Set wheels velocities:
     if(left_wheel_joints_.size() > 1 && right_wheel_joints_.size() > 1)
     {
