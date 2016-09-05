@@ -2,8 +2,8 @@
 Changelog for package ackermann_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.2 (2016-09-05)
+------------------
 * Install python scripts
 * Contributors: Vincent Rousseau
 
