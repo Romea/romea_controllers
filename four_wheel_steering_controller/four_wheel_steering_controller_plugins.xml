@@ -1,0 +1,9 @@
+<library path="lib/libackermann_controller">
+
+  <class name="ackermann_controller/AckermannController" type="ackermann_controller::AckermannController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      The AckermannController tracks velocity commands. It expects 4 VelocityJointInterface type and 2 PositionJointInterface type of hardware interfaces.
+    </description>
+  </class>
+
+</library>
