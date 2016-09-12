@@ -1,8 +1,8 @@
-#include <ackermann_controller/odometry.h>
+#include <four_wheel_steering_controller/odometry.h>
 
 #include <boost/bind.hpp>
 
-namespace ackermann_controller
+namespace four_wheel_steering_controller
 {
   namespace bacc = boost::accumulators;
 
@@ -153,4 +153,4 @@ namespace ackermann_controller
     angular_acc_ = RollingMeanAcc(RollingWindow::window_size = velocity_rolling_window_size_);
   }
 
-} // namespace ackermann_controller
+} // namespace four_wheel_steering_controller

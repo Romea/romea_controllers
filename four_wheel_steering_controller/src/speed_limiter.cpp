@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include <ackermann_controller/speed_limiter.h>
+#include <four_wheel_steering_controller/speed_limiter.h>
 
 template<typename T>
 T clamp(T x, T min, T max)
@@ -8,7 +8,7 @@ T clamp(T x, T min, T max)
   return std::min(std::max(min, x), max);
 }
 
-namespace ackermann_controller
+namespace four_wheel_steering_controller
 {
 
   SpeedLimiter::SpeedLimiter(
@@ -96,4 +96,4 @@ namespace ackermann_controller
     return tmp != 0.0 ? v / tmp : 1.0;
   }
 
-} // namespace ackermann_controller
+} // namespace four_wheel_steering_controller

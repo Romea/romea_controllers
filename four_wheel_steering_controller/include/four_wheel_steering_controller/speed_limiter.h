@@ -2,7 +2,7 @@
 #ifndef SPEED_LIMITER_H
 #define SPEED_LIMITER_H
 
-namespace ackermann_controller
+namespace four_wheel_steering_controller
 {
 
   class SpeedLimiter
@@ -89,6 +89,6 @@ namespace ackermann_controller
     double max_jerk;
   };
 
-} // namespace ackermann_controller
+} // namespace four_wheel_steering_controller
 
 #endif // SPEED_LIMITER_H

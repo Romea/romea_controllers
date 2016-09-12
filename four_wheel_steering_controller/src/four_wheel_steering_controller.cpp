@@ -6,7 +6,7 @@
 
 #include <boost/assign.hpp>
 
-#include <ackermann_controller/ackermann_controller.h>
+#include <four_wheel_steering_controller/four_wheel_steering_controller.h>
 
 static double euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
 {
@@ -67,12 +67,12 @@ static bool getWheelRadius(const boost::shared_ptr<const urdf::Link>& wheel_link
   return true;
 }
 
-namespace ackermann_controller{
+namespace four_wheel_steering_controller{
 
-  AckermannController::AckermannController()
+  FourWheelSteeringController::FourWheelSteeringController()
     : open_loop_(false)
     , command_struct_()
-    , command_struct_ackermann_()
+    , command_struct_four_wheel_steering_()
     , wheel_separation_(0.0)
     , wheel_radius_(0.0)
     , wheel_base_(0.0)
@@ -87,14 +87,14 @@ namespace ackermann_controller{
   {
   }
 
-  bool AckermannController::initRequest(hardware_interface::RobotHW *const robot_hw,
+  bool FourWheelSteeringController::initRequest(hardware_interface::RobotHW *const robot_hw,
                          ros::NodeHandle& root_nh,
                          ros::NodeHandle& ctrlr_nh,
                          std::set<std::string> &claimed_resources)
   {
     if (state_ != CONSTRUCTED)
     {
-      ROS_ERROR("The ackermann controller could not be created.");
+      ROS_ERROR("The four_wheel_steering controller could not be created.");
       return false;
     }
 
@@ -137,7 +137,7 @@ namespace ackermann_controller{
     return true;
   }
 
-  bool AckermannController::init(hardware_interface::PositionJointInterface* hw_pos,
+  bool FourWheelSteeringController::init(hardware_interface::PositionJointInterface* hw_pos,
                                  hardware_interface::VelocityJointInterface* hw_vel,
                                  ros::NodeHandle& root_nh,
                                  ros::NodeHandle &controller_nh)
@@ -228,7 +228,7 @@ namespace ackermann_controller{
     ROS_INFO_STREAM_NAMED(name_, "Publishing to tf is " << (enable_odom_tf_?"enabled":"disabled"));
 
     controller_nh.param("enable_twist_cmd", enable_twist_cmd_, enable_twist_cmd_);
-    ROS_INFO_STREAM_NAMED(name_, "Twist cmd is " << (enable_twist_cmd_?"enabled":"disabled")<<" (default is ackermann)");
+    ROS_INFO_STREAM_NAMED(name_, "Twist cmd is " << (enable_twist_cmd_?"enabled":"disabled")<<" (default is four_wheel_steering)");
 
     // Velocity and acceleration limits:
     controller_nh.param("linear/x/has_velocity_limits"    , limiter_lin_.has_velocity_limits    , limiter_lin_.has_velocity_limits    );
@@ -299,14 +299,14 @@ namespace ackermann_controller{
     }
 
     if(enable_twist_cmd_ == true)
-      sub_command_ = controller_nh.subscribe("cmd_vel", 1, &AckermannController::cmdVelCallback, this);
+      sub_command_ = controller_nh.subscribe("cmd_vel", 1, &FourWheelSteeringController::cmdVelCallback, this);
     else
-      sub_command_ackermann_ = controller_nh.subscribe("cmd_ackermann", 1, &AckermannController::cmdAckermannCallback, this);
+      sub_command_four_wheel_steering_ = controller_nh.subscribe("cmd_four_wheel_steering", 1, &FourWheelSteeringController::cmdFourWheelSteeringCallback, this);
 
     return true;
   }
 
-  void AckermannController::update(const ros::Time& time, const ros::Duration& period)
+  void FourWheelSteeringController::update(const ros::Time& time, const ros::Duration& period)
   {
     // COMPUTE AND PUBLISH ODOMETRY
     if (open_loop_)
@@ -393,7 +393,7 @@ namespace ackermann_controller{
     // Retreive current velocity command and time step:
     Commands curr_cmd;
     if(enable_twist_cmd_ == false)
-      curr_cmd = *(command_ackermann_.readFromRT());
+      curr_cmd = *(command_four_wheel_steering_.readFromRT());
     else
       curr_cmd = *(command_.readFromRT());
 
@@ -456,7 +456,7 @@ namespace ackermann_controller{
     }
   }
 
-  void AckermannController::starting(const ros::Time& time)
+  void FourWheelSteeringController::starting(const ros::Time& time)
   {
     brake();
 
@@ -466,12 +466,12 @@ namespace ackermann_controller{
     odometry_.init(time);
   }
 
-  void AckermannController::stopping(const ros::Time& /*time*/)
+  void FourWheelSteeringController::stopping(const ros::Time& /*time*/)
   {
     brake();
   }
 
-  void AckermannController::brake()
+  void FourWheelSteeringController::brake()
   {
     const double vel = 0.0;
     for (size_t i = 0; i < wheel_joints_size_; ++i)
@@ -488,7 +488,7 @@ namespace ackermann_controller{
     }
   }
 
-  void AckermannController::cmdVelCallback(const geometry_msgs::Twist& command)
+  void FourWheelSteeringController::cmdVelCallback(const geometry_msgs::Twist& command)
   {
     if (isRunning())
     {
@@ -508,19 +508,19 @@ namespace ackermann_controller{
     }
   }
 
-  void AckermannController::cmdAckermannCallback(const ackermann_msgs::AckermannDrive& command)
+  void FourWheelSteeringController::cmdFourWheelSteeringCallback(const four_wheel_steering_msgs::FourWheelSteeringDrive& command)
   {
     if (isRunning())
     {
-      command_struct_ackermann_.steering   = command.steering_angle;
-      command_struct_ackermann_.lin   = command.speed;
-      command_struct_ackermann_.stamp = ros::Time::now();
-      command_ackermann_.writeFromNonRT (command_struct_ackermann_);
+      command_struct_four_wheel_steering_.steering   = command.steering_angle;
+      command_struct_four_wheel_steering_.lin   = command.speed;
+      command_struct_four_wheel_steering_.stamp = ros::Time::now();
+      command_four_wheel_steering_.writeFromNonRT (command_struct_four_wheel_steering_);
       ROS_DEBUG_STREAM_NAMED(name_,
                              "Added values to command. "
-                             << "Steering: "   << command_struct_ackermann_.steering << ", "
-                             << "Lin: "   << command_struct_ackermann_.lin << ", "
-                             << "Stamp: " << command_struct_ackermann_.stamp);
+                             << "Steering: "   << command_struct_four_wheel_steering_.steering << ", "
+                             << "Lin: "   << command_struct_four_wheel_steering_.lin << ", "
+                             << "Stamp: " << command_struct_four_wheel_steering_.stamp);
     }
     else
     {
@@ -528,7 +528,7 @@ namespace ackermann_controller{
     }
   }
 
-  bool AckermannController::getWheelNames(ros::NodeHandle& controller_nh,
+  bool FourWheelSteeringController::getWheelNames(ros::NodeHandle& controller_nh,
                               const std::string& wheel_param,
                               std::vector<std::string>& wheel_names)
   {
@@ -581,7 +581,7 @@ namespace ackermann_controller{
       return true;
   }
 
-  bool AckermannController::setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
+  bool FourWheelSteeringController::setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
                              const std::string& left_wheel_name,
                              const std::string& right_wheel_name,
                              bool lookup_wheel_separation,
@@ -650,7 +650,7 @@ namespace ackermann_controller{
     return true;
   }
 
-  void AckermannController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
+  void FourWheelSteeringController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
   {
     // Get and check params for covariances
     XmlRpc::XmlRpcValue pose_cov_list;
@@ -697,4 +697,4 @@ namespace ackermann_controller{
     tf_odom_pub_->msg_.transforms[0].header.frame_id = "odom";
   }
 
-} // namespace ackermann_controller
+} // namespace four_wheel_steering_controller

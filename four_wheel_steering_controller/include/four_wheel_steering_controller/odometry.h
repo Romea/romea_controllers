@@ -8,7 +8,7 @@
 #include <boost/accumulators/statistics/rolling_mean.hpp>
 #include <boost/function.hpp>
 
-namespace ackermann_controller
+namespace four_wheel_steering_controller
 {
   namespace bacc = boost::accumulators;
 
