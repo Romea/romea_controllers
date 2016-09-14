@@ -1,0 +1,26 @@
+<package>
+  <name>four_wheel_steering_msgs</name>
+  <version>1.0.0</version>
+  <description>
+    ROS messages for robots using FourWheelSteering.
+  </description>
+  <maintainer email="vincent.rousseau@irstea.fr">Vincent Rousseau</maintainer>
+  <author>Vincent Rousseau</author>
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/four_wheel_steering_msgs</url>
+  <url type="repository">https://github.com/romea/four_wheel_steering_msgs.git</url>
+  <url type="bugtracker">https://github.com/romea/four_wheel_steering_msgs/issues</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <run_depend>message_runtime</run_depend>
+  <run_depend>std_msgs</run_depend>
+  
+  <export>
+    <architecture_independent/>
+  </export>
+</package>
