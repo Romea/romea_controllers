@@ -89,10 +89,11 @@ namespace four_wheel_steering_controller{
     {
       double lin;
       double ang;
-      double steering;
+      double front_steering;
+      double rear_steering;
       ros::Time stamp;
 
-      Commands() : lin(0.0), ang(0.0), steering(0.0), stamp(0.0) {}
+      Commands() : lin(0.0), ang(0.0), front_steering(0.0), rear_steering(0.0), stamp(0.0) {}
     };
     realtime_tools::RealtimeBuffer<Commands> command_;
     Commands command_struct_;
@@ -108,18 +109,14 @@ namespace four_wheel_steering_controller{
     boost::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
     Odometry odometry_;
 
-    /// Wheel separation, wrt the midpoint of the wheel width:
+    /// Wheel separation (or track), distance between left and right wheels (from the midpoint of the wheel width):
     double wheel_separation_;
 
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double wheel_radius_;
 
-    /// Wheel base (distance between front and rear wheel:
+    /// Wheel base (distance between front and rear wheel):
     double wheel_base_;
-
-    /// Wheel separation and radius calibration multipliers:
-    double wheel_separation_multiplier_;
-    double wheel_radius_multiplier_;
 
     /// Timeout to consider cmd_vel commands old:
     double cmd_vel_timeout_;

@@ -76,8 +76,6 @@ namespace four_wheel_steering_controller{
     , wheel_separation_(0.0)
     , wheel_radius_(0.0)
     , wheel_base_(0.0)
-    , wheel_separation_multiplier_(1.0)
-    , wheel_radius_multiplier_(1.0)
     , cmd_vel_timeout_(0.5)
     , base_frame_id_("base_link")
     , enable_odom_tf_(true)
@@ -161,6 +159,12 @@ namespace four_wheel_steering_controller{
           "#right wheels (" << right_wheel_names.size() << ").");
       return false;
     }
+    else if (left_wheel_names.size() != 2)
+    {
+      ROS_ERROR_STREAM_NAMED(name_,
+          "#two wheels by side (left and right) is needed; now : "<<left_wheel_names.size()<<" .");
+      return false;
+    }
     else
     {
       wheel_joints_size_ = left_wheel_names.size();
@@ -184,6 +188,12 @@ namespace four_wheel_steering_controller{
           "#right steerings (" << right_steering_names.size() << ").");
       return false;
     }
+    else if (left_steering_names.size() != 2)
+    {
+      ROS_ERROR_STREAM_NAMED(name_,
+          "#two steering by side (left and right) is needed; now : "<<left_steering_names.size()<<" .");
+      return false;
+    }
     else
     {
       steering_joints_size_ = left_steering_names.size();
@@ -200,14 +210,6 @@ namespace four_wheel_steering_controller{
     publish_period_ = ros::Duration(1.0 / publish_rate);
 
     controller_nh.param("open_loop", open_loop_, open_loop_);
-
-    controller_nh.param("wheel_separation_multiplier", wheel_separation_multiplier_, wheel_separation_multiplier_);
-    ROS_INFO_STREAM_NAMED(name_, "Wheel separation will be multiplied by "
-                          << wheel_separation_multiplier_ << ".");
-
-    controller_nh.param("wheel_radius_multiplier", wheel_radius_multiplier_, wheel_radius_multiplier_);
-    ROS_INFO_STREAM_NAMED(name_, "Wheel radius will be multiplied by "
-                          << wheel_radius_multiplier_ << ".");
 
     int velocity_rolling_window_size = 10;
     controller_nh.param("velocity_rolling_window_size", velocity_rolling_window_size, velocity_rolling_window_size);
@@ -267,8 +269,8 @@ namespace four_wheel_steering_controller{
 
     // Regardless of how we got the separation and radius, use them
     // to set the odometry parameters
-    const double ws = wheel_separation_multiplier_ * wheel_separation_;
-    const double wr = wheel_radius_multiplier_     * wheel_radius_;
+    const double ws = wheel_separation_;
+    const double wr = wheel_radius_;
     const double wb = wheel_base_;
     odometry_.setWheelParams(ws, wr, wb);
     ROS_INFO_STREAM_NAMED(name_,
@@ -404,7 +406,8 @@ namespace four_wheel_steering_controller{
     {
       curr_cmd.lin = 0.0;
       curr_cmd.ang = 0.0;
-      curr_cmd.steering = 0.0;
+      curr_cmd.front_steering = 0.0;
+      curr_cmd.rear_steering = 0.0;
     }
 
     // Limit velocities and accelerations:
@@ -418,9 +421,8 @@ namespace four_wheel_steering_controller{
 
 
     const double angular_speed = odometry_.getAngular();
-    // Apply multipliers:
-    const double ws = wheel_separation_multiplier_ * wheel_separation_;
-    const double wr = wheel_radius_multiplier_     * wheel_radius_;
+    const double ws = wheel_separation_;
+    const double wr = wheel_radius_;
 
     ROS_DEBUG_STREAM("angular_speed "<<angular_speed<<" curr_cmd.lin "<<curr_cmd.lin<< " wr "<<wr);
     // Compute wheels velocities:
@@ -429,7 +431,7 @@ namespace four_wheel_steering_controller{
     const double vel_left_rear = (curr_cmd.lin - angular_speed*ws/2)/wr;
     const double vel_right_rear = (curr_cmd.lin + angular_speed*ws/2)/wr;
     // Set wheels velocities:
-    if(left_wheel_joints_.size() > 1 && right_wheel_joints_.size() > 1)
+    if(left_wheel_joints_.size() == 2 && right_wheel_joints_.size() == 2)
     {
       left_wheel_joints_[0].setCommand(vel_left_front);
       right_wheel_joints_[0].setCommand(vel_right_front);
@@ -437,22 +439,29 @@ namespace four_wheel_steering_controller{
       right_wheel_joints_[1].setCommand(vel_right_rear);
     }
 
-    double front_steering = 0;
+    double front_steering = 0, rear_steering = 0;
     if(enable_twist_cmd_ == true)
     {
       if(fabs(odometry_.getLinear()) > 0.01)
-        front_steering = atan(curr_cmd.ang*wheel_base_/odometry_.getLinear());
+      {
+        double steering = atan(curr_cmd.ang*wheel_base_/odometry_.getLinear());
+        front_steering = steering/2.0;
+        rear_steering = -steering/2.0;
+      }
     }
     else
     {
-      front_steering = curr_cmd.steering;
+      front_steering = curr_cmd.front_steering;
+      rear_steering = curr_cmd.rear_steering;
     }
 
-    if(left_steering_joints_.size() > 0 && right_steering_joints_.size() > 0)
+    if(left_steering_joints_.size() == 2 && right_steering_joints_.size() == 2)
     {
-      ROS_DEBUG_STREAM("front_steering "<<front_steering);
+      ROS_DEBUG_STREAM("front_steering "<<front_steering<<" rear_steering "<<rear_steering);
       left_steering_joints_[0].setCommand(front_steering);
       right_steering_joints_[0].setCommand(front_steering);
+      left_steering_joints_[1].setCommand(rear_steering);
+      right_steering_joints_[1].setCommand(rear_steering);
     }
   }
 
@@ -512,13 +521,15 @@ namespace four_wheel_steering_controller{
   {
     if (isRunning())
     {
-      command_struct_four_wheel_steering_.steering   = command.steering_angle;
+      command_struct_four_wheel_steering_.front_steering   = command.front_steering_angle;
+      command_struct_four_wheel_steering_.rear_steering   = command.rear_steering_angle;
       command_struct_four_wheel_steering_.lin   = command.speed;
       command_struct_four_wheel_steering_.stamp = ros::Time::now();
       command_four_wheel_steering_.writeFromNonRT (command_struct_four_wheel_steering_);
       ROS_DEBUG_STREAM_NAMED(name_,
                              "Added values to command. "
-                             << "Steering: "   << command_struct_four_wheel_steering_.steering << ", "
+                             << "Steering front : "   << command_struct_four_wheel_steering_.front_steering << ", "
+                             << "Steering rear : "   << command_struct_four_wheel_steering_.rear_steering << ", "
                              << "Lin: "   << command_struct_four_wheel_steering_.lin << ", "
                              << "Stamp: " << command_struct_four_wheel_steering_.stamp);
     }
