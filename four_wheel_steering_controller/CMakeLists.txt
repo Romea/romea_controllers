@@ -21,14 +21,19 @@ include_directories(
   include ${catkin_INCLUDE_DIRS}
 )
 
+add_library(urdf_vehicle_kinematic src/urdf_vehicle_kinematic.cpp)
+
 add_library(${PROJECT_NAME} src/four_wheel_steering_controller.cpp src/odometry.cpp src/speed_limiter.cpp)
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} urdf_vehicle_kinematic)
 
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
+
+catkin_install_python(PROGRAMS scripts/teleop_four_wheel_steering_joy.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(FILES four_wheel_steering_controller_plugins.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
