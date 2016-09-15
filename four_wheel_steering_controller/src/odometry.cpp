@@ -13,16 +13,13 @@ namespace four_wheel_steering_controller
   , heading_(0.0)
   , linear_(0.0)
   , angular_(0.0)
-  , wheel_separation_(0.0)
+  , track_(0.0)
   , wheel_radius_(0.0)
   , wheel_base_(0.0)
-  , left_wheel_old_pos_(0.0)
-  , right_wheel_old_pos_(0.0)
   , wheel_old_pos_(0.0)
   , velocity_rolling_window_size_(velocity_rolling_window_size)
   , linear_acc_(RollingWindow::window_size = velocity_rolling_window_size)
   , angular_acc_(RollingWindow::window_size = velocity_rolling_window_size)
-  , integrate_fun_(boost::bind(&Odometry::integrateExact, this, _1, _2))
   {
   }
 
@@ -33,46 +30,8 @@ namespace four_wheel_steering_controller
     timestamp_ = time;
   }
 
-  bool Odometry::update(double left_pos, double right_pos, const ros::Time &time)
-  {
-    /// Get current wheel joint positions:
-    const double left_wheel_cur_pos  = left_pos  * wheel_radius_;
-    const double right_wheel_cur_pos = right_pos * wheel_radius_;
 
-    /// Estimate velocity of wheels using old and current position:
-    const double left_wheel_est_vel  = left_wheel_cur_pos  - left_wheel_old_pos_;
-    const double right_wheel_est_vel = right_wheel_cur_pos - right_wheel_old_pos_;
-
-    /// Update old position with current:
-    left_wheel_old_pos_  = left_wheel_cur_pos;
-    right_wheel_old_pos_ = right_wheel_cur_pos;
-
-    /// Compute linear and angular diff:
-    const double linear  = (right_wheel_est_vel + left_wheel_est_vel) * 0.5 ;
-    const double angular = (right_wheel_est_vel - left_wheel_est_vel) / wheel_separation_;
-
-    /// Integrate odometry:
-    integrate_fun_(linear, angular);
-
-    /// We cannot estimate the speed with very small time intervals:
-    const double dt = (time - timestamp_).toSec();
-    if (dt < 0.0001)
-      return false; // Interval too small to integrate with
-
-    timestamp_ = time;
-
-    /// Estimate speeds using a rolling mean to filter them out:
-    linear_acc_(linear/dt);
-    angular_acc_(angular/dt);
-
-    linear_ = bacc::rolling_mean(linear_acc_);
-    angular_ = bacc::rolling_mean(angular_acc_);
-
-    return true;
-  }
-
-
-  bool Odometry::update(double wheel_angular_pos, double wheel_angular_vel, double front_steering, const ros::Time &time)
+  bool Odometry::update(double wheel_angular_pos, double wheel_angular_vel, double front_steering, double rear_steering, const ros::Time &time)
   {
     /// Get current wheel joint positions:
     const double wheel_cur_pos  = wheel_angular_pos  * wheel_radius_;
@@ -83,7 +42,7 @@ namespace four_wheel_steering_controller
 
     const double angular = wheel_est_vel * tan(front_steering) / wheel_base_;
     /// Integrate odometry:
-    integrate_fun_(wheel_est_vel, angular);
+    integrateExact(wheel_est_vel, angular);
 
     linear_ = wheel_angular_vel*wheel_radius_;
     angular_ = linear_ * tan(front_steering) / wheel_base_;
@@ -100,12 +59,12 @@ namespace four_wheel_steering_controller
     /// Integrate odometry:
     const double dt = (time - timestamp_).toSec();
     timestamp_ = time;
-    integrate_fun_(linear * dt, angular * dt);
+    integrateExact(linear * dt, angular * dt);
   }
 
-  void Odometry::setWheelParams(double wheel_separation, double wheel_radius, double wheel_base)
+  void Odometry::setWheelParams(double track, double wheel_radius, double wheel_base)
   {
-    wheel_separation_ = wheel_separation;
+    track_ = track;
     wheel_radius_     = wheel_radius;
     wheel_base_       = wheel_base;
   }

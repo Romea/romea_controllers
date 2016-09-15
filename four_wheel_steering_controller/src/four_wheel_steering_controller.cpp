@@ -2,70 +2,9 @@
 
 #include <tf/transform_datatypes.h>
 
-#include <urdf_parser/urdf_parser.h>
-
 #include <boost/assign.hpp>
 
 #include <four_wheel_steering_controller/four_wheel_steering_controller.h>
-
-static double euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
-{
-  return std::sqrt(std::pow(vec1.x-vec2.x,2) +
-                   std::pow(vec1.y-vec2.y,2) +
-                   std::pow(vec1.z-vec2.z,2));
-}
-
-/*
- * \brief Check if the link is modeled as a cylinder
- * \param link Link
- * \return true if the link is modeled as a Cylinder; false otherwise
- */
-static bool isCylinder(const boost::shared_ptr<const urdf::Link>& link)
-{
-  if (!link)
-  {
-    ROS_ERROR("Link == NULL.");
-    return false;
-  }
-
-  if (!link->collision)
-  {
-    ROS_ERROR_STREAM("Link " << link->name << " does not have collision description. Add collision description for link to urdf.");
-    return false;
-  }
-
-  if (!link->collision->geometry)
-  {
-    ROS_ERROR_STREAM("Link " << link->name << " does not have collision geometry description. Add collision geometry description for link to urdf.");
-    return false;
-  }
-
-  if (link->collision->geometry->type != urdf::Geometry::CYLINDER)
-  {
-    ROS_ERROR_STREAM("Link " << link->name << " does not have cylinder geometry");
-    return false;
-  }
-
-  return true;
-}
-
-/*
- * \brief Get the wheel radius
- * \param [in]  wheel_link   Wheel link
- * \param [out] wheel_radius Wheel radius [m]
- * \return true if the wheel radius was found; false otherwise
- */
-static bool getWheelRadius(const boost::shared_ptr<const urdf::Link>& wheel_link, double& wheel_radius)
-{
-  if (!isCylinder(wheel_link))
-  {
-    ROS_ERROR_STREAM("Wheel link " << wheel_link->name << " is NOT modeled as a cylinder!");
-    return false;
-  }
-
-  wheel_radius = (static_cast<urdf::Cylinder*>(wheel_link->collision->geometry.get()))->radius;
-  return true;
-}
 
 namespace four_wheel_steering_controller{
 
@@ -73,7 +12,7 @@ namespace four_wheel_steering_controller{
     : open_loop_(false)
     , command_struct_()
     , command_struct_four_wheel_steering_()
-    , wheel_separation_(0.0)
+    , track_(0.0)
     , wheel_radius_(0.0)
     , wheel_base_(0.0)
     , cmd_vel_timeout_(0.5)
@@ -145,61 +84,61 @@ namespace four_wheel_steering_controller{
     name_ = complete_ns.substr(id + 1);
 
     // Get joint names from the parameter server
-    std::vector<std::string> left_wheel_names, right_wheel_names;
-    if (!getWheelNames(controller_nh, "left_wheel", left_wheel_names) or
-        !getWheelNames(controller_nh, "right_wheel", right_wheel_names))
+    std::vector<std::string> front_wheel_names, rear_wheel_names;
+    if (!getWheelNames(controller_nh, "front_wheel", front_wheel_names) ||
+        !getWheelNames(controller_nh, "rear_wheel", rear_wheel_names))
     {
       return false;
     }
 
-    if (left_wheel_names.size() != right_wheel_names.size())
+    if (front_wheel_names.size() != rear_wheel_names.size())
     {
       ROS_ERROR_STREAM_NAMED(name_,
-          "#left wheels (" << left_wheel_names.size() << ") != " <<
-          "#right wheels (" << right_wheel_names.size() << ").");
+          "#front wheels (" << front_wheel_names.size() << ") != " <<
+          "#rear wheels (" << rear_wheel_names.size() << ").");
       return false;
     }
-    else if (left_wheel_names.size() != 2)
+    else if (front_wheel_names.size() != 2)
     {
       ROS_ERROR_STREAM_NAMED(name_,
-          "#two wheels by side (left and right) is needed; now : "<<left_wheel_names.size()<<" .");
+          "#two wheels by axle (left and right) is needed; now : "<<front_wheel_names.size()<<" .");
       return false;
     }
     else
     {
-      wheel_joints_size_ = left_wheel_names.size();
+      wheel_joints_size_ = front_wheel_names.size();
 
-      left_wheel_joints_.resize(wheel_joints_size_);
-      right_wheel_joints_.resize(wheel_joints_size_);
+      front_wheel_joints_.resize(wheel_joints_size_);
+      rear_wheel_joints_.resize(wheel_joints_size_);
     }
 
     // Get steering joint names from the parameter server
-    std::vector<std::string> left_steering_names, right_steering_names;
-    if (!getWheelNames(controller_nh, "left_steering", left_steering_names) or
-        !getWheelNames(controller_nh, "right_steering", right_steering_names))
+    std::vector<std::string> front_steering_names, rear_steering_names;
+    if (!getWheelNames(controller_nh, "front_steering", front_steering_names) ||
+        !getWheelNames(controller_nh, "rear_steering", rear_steering_names))
     {
       return false;
     }
 
-    if (left_steering_names.size() != right_steering_names.size())
+    if (front_steering_names.size() != rear_steering_names.size())
     {
       ROS_ERROR_STREAM_NAMED(name_,
-          "#left steerings (" << left_steering_names.size() << ") != " <<
-          "#right steerings (" << right_steering_names.size() << ").");
+          "#left steerings (" << front_steering_names.size() << ") != " <<
+          "#right steerings (" << rear_steering_names.size() << ").");
       return false;
     }
-    else if (left_steering_names.size() != 2)
+    else if (front_steering_names.size() != 2)
     {
       ROS_ERROR_STREAM_NAMED(name_,
-          "#two steering by side (left and right) is needed; now : "<<left_steering_names.size()<<" .");
+          "#two steering by axle (left and right) is needed; now : "<<front_steering_names.size()<<" .");
       return false;
     }
     else
     {
-      steering_joints_size_ = left_steering_names.size();
+      steering_joints_size_ = front_steering_names.size();
 
-      left_steering_joints_.resize(steering_joints_size_);
-      right_steering_joints_.resize(steering_joints_size_);
+      front_steering_joints_.resize(steering_joints_size_);
+      rear_steering_joints_.resize(steering_joints_size_);
     }
 
     // Odometry related:
@@ -254,22 +193,26 @@ namespace four_wheel_steering_controller{
     controller_nh.param("angular/z/min_jerk"               , limiter_ang_.min_jerk               , -limiter_ang_.max_jerk              );
 
     // If either parameter is not available, we need to look up the value in the URDF
-    bool lookup_wheel_separation = !controller_nh.getParam("wheel_separation", wheel_separation_);
+    bool lookup_track = !controller_nh.getParam("track", track_);
     bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
     bool lookup_wheel_base = !controller_nh.getParam("wheel_base", wheel_base_);
 
-    if (!setOdomParamsFromUrdf(root_nh,
-                              left_wheel_names[0],
-                              right_wheel_names[0],
-                              lookup_wheel_separation,
-                              lookup_wheel_radius))
-    {
-      return false;
-    }
+    UrdfVehicleKinematic uvk(root_nh);
+    if(lookup_track)
+      if(!uvk.getTrack(front_wheel_names[0], front_wheel_names[1], track_))
+        return false;
+//    if (!uvk.setOdomParamsFromUrdf(
+//                              front_wheel_names[0],
+//                              rear_wheel_names[0],
+//                              lookup_track,
+//                              lookup_wheel_radius))
+//    {
+//      return false;
+//    }
 
     // Regardless of how we got the separation and radius, use them
     // to set the odometry parameters
-    const double ws = wheel_separation_;
+    const double ws = track_;
     const double wr = wheel_radius_;
     const double wb = wheel_base_;
     odometry_.setWheelParams(ws, wr, wb);
@@ -284,20 +227,20 @@ namespace four_wheel_steering_controller{
     for (int i = 0; i < wheel_joints_size_; ++i)
     {
       ROS_INFO_STREAM_NAMED(name_,
-                            "Adding left wheel with joint name: " << left_wheel_names[i]
-                            << " and right wheel with joint name: " << right_wheel_names[i]);
-      left_wheel_joints_[i] = hw_vel->getHandle(left_wheel_names[i]);  // throws on failure
-      right_wheel_joints_[i] = hw_vel->getHandle(right_wheel_names[i]);  // throws on failure
+                            "Adding left wheel with joint name: " << front_wheel_names[i]
+                            << " and right wheel with joint name: " << rear_wheel_names[i]);
+      front_wheel_joints_[i] = hw_vel->getHandle(front_wheel_names[i]);  // throws on failure
+      rear_wheel_joints_[i] = hw_vel->getHandle(rear_wheel_names[i]);  // throws on failure
     }
 
     // Get the steering joint object to use in the realtime loop
     for (int i = 0; i < steering_joints_size_; ++i)
     {
       ROS_INFO_STREAM_NAMED(name_,
-                            "Adding left steering with joint name: " << left_steering_names[i]
-                            << " and right steering with joint name: " << right_steering_names[i]);
-      left_steering_joints_[i] = hw_pos->getHandle(left_steering_names[i]);  // throws on failure
-      right_steering_joints_[i] = hw_pos->getHandle(right_steering_names[i]);  // throws on failure
+                            "Adding left steering with joint name: " << front_steering_names[i]
+                            << " and right steering with joint name: " << rear_steering_names[i]);
+      front_steering_joints_[i] = hw_pos->getHandle(front_steering_names[i]);  // throws on failure
+      rear_steering_joints_[i] = hw_pos->getHandle(rear_steering_names[i]);  // throws on failure
     }
 
     if(enable_twist_cmd_ == true)
@@ -323,15 +266,15 @@ namespace four_wheel_steering_controller{
       double right_vel = 0.0;
       for (size_t i = 0; i < wheel_joints_size_; ++i)
       {
-        const double lp = left_wheel_joints_[i].getPosition();
-        const double rp = right_wheel_joints_[i].getPosition();
+        const double lp = front_wheel_joints_[i].getPosition();
+        const double rp = rear_wheel_joints_[i].getPosition();
         if (std::isnan(lp) || std::isnan(rp))
           return;
         left_pos  += lp;
         right_pos += rp;
 
-        const double ls = left_wheel_joints_[i].getVelocity();
-        const double rs = right_wheel_joints_[i].getVelocity();
+        const double ls = front_wheel_joints_[i].getVelocity();
+        const double rs = rear_wheel_joints_[i].getVelocity();
         if (std::isnan(ls) || std::isnan(rs))
           return;
         left_vel  += ls;
@@ -344,19 +287,19 @@ namespace four_wheel_steering_controller{
       double wheel_angular_pos = (left_pos + right_pos)/2.0;
       double wheel_angular_vel = (left_vel + right_vel)/2.0;
 
-      double left_steering_pos = 0.0;
-      double right_steering_pos = 0.0;
-      if(left_steering_joints_.size() > 0 && right_steering_joints_.size() > 0)
+      double front_steering_pos = 0.0;
+      double rear_steering_pos = 0.0;
+      for (size_t i = 0; i < steering_joints_size_; ++i)
       {
-    	  left_steering_pos = left_steering_joints_[0].getPosition();
-    	  right_steering_pos = right_steering_joints_[0].getPosition();
-        ROS_DEBUG_STREAM(" left_steering_pos "<<left_steering_pos<<" right_steering_pos "<<right_steering_pos);
+        front_steering_pos += front_steering_joints_[i].getPosition();
+        rear_steering_pos += rear_steering_joints_[i].getPosition();
       }
-      double steering_pos = (left_steering_pos + right_steering_pos)/2.0;
+      front_steering_pos /= steering_joints_size_;
+      rear_steering_pos /= steering_joints_size_;
 
-      ROS_DEBUG_STREAM("wheel_angular_vel "<<wheel_angular_vel<<" steering_pos "<<steering_pos);
+      ROS_DEBUG_STREAM("wheel_angular_vel "<<wheel_angular_vel<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
       // Estimate linear and angular velocity using joint information
-      odometry_.update(wheel_angular_pos, wheel_angular_vel, steering_pos, time);
+      odometry_.update(wheel_angular_pos, wheel_angular_vel, front_steering_pos, rear_steering_pos, time);
     }
 
     // Publish odometry message
@@ -421,7 +364,7 @@ namespace four_wheel_steering_controller{
 
 
     const double angular_speed = odometry_.getAngular();
-    const double ws = wheel_separation_;
+    const double ws = track_;
     const double wr = wheel_radius_;
 
     ROS_DEBUG_STREAM("angular_speed "<<angular_speed<<" curr_cmd.lin "<<curr_cmd.lin<< " wr "<<wr);
@@ -431,12 +374,12 @@ namespace four_wheel_steering_controller{
     const double vel_left_rear = (curr_cmd.lin - angular_speed*ws/2)/wr;
     const double vel_right_rear = (curr_cmd.lin + angular_speed*ws/2)/wr;
     // Set wheels velocities:
-    if(left_wheel_joints_.size() == 2 && right_wheel_joints_.size() == 2)
+    if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {
-      left_wheel_joints_[0].setCommand(vel_left_front);
-      right_wheel_joints_[0].setCommand(vel_right_front);
-      left_wheel_joints_[1].setCommand(vel_left_rear);
-      right_wheel_joints_[1].setCommand(vel_right_rear);
+      front_wheel_joints_[0].setCommand(vel_left_front);
+      rear_wheel_joints_[0].setCommand(vel_right_front);
+      front_wheel_joints_[1].setCommand(vel_left_rear);
+      rear_wheel_joints_[1].setCommand(vel_right_rear);
     }
 
     double front_steering = 0, rear_steering = 0;
@@ -455,13 +398,13 @@ namespace four_wheel_steering_controller{
       rear_steering = curr_cmd.rear_steering;
     }
 
-    if(left_steering_joints_.size() == 2 && right_steering_joints_.size() == 2)
+    if(front_steering_joints_.size() == 2 && rear_steering_joints_.size() == 2)
     {
       ROS_DEBUG_STREAM("front_steering "<<front_steering<<" rear_steering "<<rear_steering);
-      left_steering_joints_[0].setCommand(front_steering);
-      right_steering_joints_[0].setCommand(front_steering);
-      left_steering_joints_[1].setCommand(rear_steering);
-      right_steering_joints_[1].setCommand(rear_steering);
+      front_steering_joints_[0].setCommand(front_steering);
+      front_steering_joints_[1].setCommand(front_steering);
+      rear_steering_joints_[0].setCommand(rear_steering);
+      rear_steering_joints_[1].setCommand(rear_steering);
     }
   }
 
@@ -485,15 +428,15 @@ namespace four_wheel_steering_controller{
     const double vel = 0.0;
     for (size_t i = 0; i < wheel_joints_size_; ++i)
     {
-      left_wheel_joints_[i].setCommand(vel);
-      right_wheel_joints_[i].setCommand(vel);
+      front_wheel_joints_[i].setCommand(vel);
+      rear_wheel_joints_[i].setCommand(vel);
     }
 
     const double pos = 0.0;
     for (size_t i = 0; i < steering_joints_size_; ++i)
     {
-      left_steering_joints_[i].setCommand(pos);
-      right_steering_joints_[i].setCommand(pos);
+      front_steering_joints_[i].setCommand(pos);
+      rear_steering_joints_[i].setCommand(pos);
     }
   }
 
@@ -575,6 +518,7 @@ namespace four_wheel_steering_controller{
         for (int i = 0; i < wheel_list.size(); ++i)
         {
           wheel_names[i] = static_cast<std::string>(wheel_list[i]);
+          //ROS_INFO_STREAM("wheel name "<<i<<" " << wheel_names[i]);
         }
       }
       else if (wheel_list.getType() == XmlRpc::XmlRpcValue::TypeString)
@@ -588,77 +532,7 @@ namespace four_wheel_steering_controller{
             "' is neither a list of strings nor a string.");
         return false;
       }
-
       return true;
-  }
-
-  bool FourWheelSteeringController::setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
-                             const std::string& left_wheel_name,
-                             const std::string& right_wheel_name,
-                             bool lookup_wheel_separation,
-                             bool lookup_wheel_radius)
-  {
-    if (!(lookup_wheel_separation || lookup_wheel_radius))
-    {
-      // Short-circuit in case we don't need to look up anything, so we don't have to parse the URDF
-      return true;
-    }
-
-    // Parse robot description
-    const std::string model_param_name = "robot_description";
-    bool res = root_nh.hasParam(model_param_name);
-    std::string robot_model_str="";
-    if (!res || !root_nh.getParam(model_param_name,robot_model_str))
-    {
-      ROS_ERROR_NAMED(name_, "Robot descripion couldn't be retrieved from param server.");
-      return false;
-    }
-
-    boost::shared_ptr<urdf::ModelInterface> model(urdf::parseURDF(robot_model_str));
-
-    boost::shared_ptr<const urdf::Joint> left_wheel_joint(model->getJoint(left_wheel_name));
-    boost::shared_ptr<const urdf::Joint> right_wheel_joint(model->getJoint(right_wheel_name));
-
-    if (lookup_wheel_separation)
-    {
-      // Get wheel separation
-      if (!left_wheel_joint)
-      {
-        ROS_ERROR_STREAM_NAMED(name_, left_wheel_name
-                               << " couldn't be retrieved from model description");
-        return false;
-      }
-
-      if (!right_wheel_joint)
-      {
-        ROS_ERROR_STREAM_NAMED(name_, right_wheel_name
-                               << " couldn't be retrieved from model description");
-        return false;
-      }
-
-      ROS_INFO_STREAM("left wheel to origin: " << left_wheel_joint->parent_to_joint_origin_transform.position.x << ","
-                      << left_wheel_joint->parent_to_joint_origin_transform.position.y << ", "
-                      << left_wheel_joint->parent_to_joint_origin_transform.position.z);
-      ROS_INFO_STREAM("right wheel to origin: " << right_wheel_joint->parent_to_joint_origin_transform.position.x << ","
-                      << right_wheel_joint->parent_to_joint_origin_transform.position.y << ", "
-                      << right_wheel_joint->parent_to_joint_origin_transform.position.z);
-
-      wheel_separation_ = euclideanOfVectors(left_wheel_joint->parent_to_joint_origin_transform.position,
-                                             right_wheel_joint->parent_to_joint_origin_transform.position);
-
-    }
-
-    if (lookup_wheel_radius)
-    {
-      // Get wheel radius
-      if (!getWheelRadius(model->getLink(left_wheel_joint->child_link_name), wheel_radius_))
-      {
-        ROS_ERROR_STREAM_NAMED(name_, "Couldn't retrieve " << left_wheel_name << " wheel radius");
-        return false;
-      }
-    }
-
-    return true;
   }
 
   void FourWheelSteeringController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)

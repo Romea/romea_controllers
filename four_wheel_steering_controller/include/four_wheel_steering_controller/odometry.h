@@ -38,15 +38,15 @@ namespace four_wheel_steering_controller
     void init(const ros::Time &time);
 
     /**
-     * \brief Updates the odometry class with latest wheels position
-     * \param left_pos  Left  wheel position [rad]
-     * \param right_pos Right wheel position [rad]
+     * \brief Updates the odometry class with latest wheels and steerings position
+     * \param wheel_angular_pos  vehicle wheel position [rad]
+     * \param wheel_angular_vel vehicle speed [rad/s]
+     * \param front_steering  steering position [rad]
+     * \param rear_steering  steering position [rad]
      * \param time      Current time
      * \return true if the odometry is actually updated
      */
-    bool update(double left_pos, double right_pos, const ros::Time &time);
-
-    bool update(double linear_pos, double linear_speed, double front_steering, const ros::Time &time);
+    bool update(double wheel_angular_pos, double wheel_angular_vel, double front_steering, double rear_steering, const ros::Time &time);
 
     /**
      * \brief Updates the odometry class with latest velocity command
@@ -103,11 +103,11 @@ namespace four_wheel_steering_controller
 
     /**
      * \brief Sets the wheel parameters: radius and separation
-     * \param wheel_separation Seperation between left and right wheels [m]
+     * \param track Seperation between left and right wheels [m]
      * \param wheel_radius     Wheel radius [m]
      * \param wheel_base       Wheel base [m]
      */
-    void setWheelParams(double wheel_separation, double wheel_radius, double wheel_base);
+    void setWheelParams(double track, double wheel_radius, double wheel_base);
 
     /**
      * \brief Velocity rolling window size setter
@@ -153,22 +153,17 @@ namespace four_wheel_steering_controller
     double angular_; // [rad/s]
 
     /// Wheel kinematic parameters [m]:
-    double wheel_separation_;
+    double track_;
     double wheel_radius_;
     double wheel_base_;
 
-    /// Previou wheel position/state [rad]:
-    double left_wheel_old_pos_;
-    double right_wheel_old_pos_;
+    /// Previous wheel position/state [rad]:
     double wheel_old_pos_;
 
     /// Rolling mean accumulators for the linar and angular velocities:
     size_t velocity_rolling_window_size_;
     RollingMeanAcc linear_acc_;
     RollingMeanAcc angular_acc_;
-
-    /// Integration funcion, used to integrate the odometry:
-    IntegrationFunction integrate_fun_;
   };
 }
 

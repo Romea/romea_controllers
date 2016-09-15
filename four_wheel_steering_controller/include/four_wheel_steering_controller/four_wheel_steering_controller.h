@@ -12,6 +12,7 @@
 
 #include <four_wheel_steering_controller/odometry.h>
 #include <four_wheel_steering_controller/speed_limiter.h>
+#include <four_wheel_steering_controller/urdf_vehicle_kinematic.h>
 
 namespace four_wheel_steering_controller{
 
@@ -79,10 +80,10 @@ namespace four_wheel_steering_controller{
     bool open_loop_;
 
     /// Hardware handles:
-    std::vector<hardware_interface::JointHandle> left_wheel_joints_;
-    std::vector<hardware_interface::JointHandle> right_wheel_joints_;
-    std::vector<hardware_interface::JointHandle> left_steering_joints_;
-    std::vector<hardware_interface::JointHandle> right_steering_joints_;
+    std::vector<hardware_interface::JointHandle> front_wheel_joints_;
+    std::vector<hardware_interface::JointHandle> rear_wheel_joints_;
+    std::vector<hardware_interface::JointHandle> front_steering_joints_;
+    std::vector<hardware_interface::JointHandle> rear_steering_joints_;
 
     /// Velocity command related:
     struct Commands
@@ -110,7 +111,7 @@ namespace four_wheel_steering_controller{
     Odometry odometry_;
 
     /// Wheel separation (or track), distance between left and right wheels (from the midpoint of the wheel width):
-    double wheel_separation_;
+    double track_;
 
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double wheel_radius_;
@@ -171,18 +172,6 @@ namespace four_wheel_steering_controller{
     bool getWheelNames(ros::NodeHandle& controller_nh,
                        const std::string& wheel_param,
                        std::vector<std::string>& wheel_names);
-
-    /**
-     * \brief Sets odometry parameters from the URDF, i.e. the wheel radius and separation
-     * \param root_nh Root node handle
-     * \param left_wheel_name Name of the left wheel joint
-     * \param right_wheel_name Name of the right wheel joint
-     */
-    bool setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
-                               const std::string& left_wheel_name,
-                               const std::string& right_wheel_name,
-                               bool lookup_wheel_separation,
-                               bool lookup_wheel_radius);
 
     /**
      * \brief Sets the odometry publishing fields
