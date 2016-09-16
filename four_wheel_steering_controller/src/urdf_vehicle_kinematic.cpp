@@ -72,49 +72,80 @@ namespace four_wheel_steering_controller{
       ROS_ERROR("Robot descripion couldn't be retrieved from param server.");
     }
     else
+    {
       model_ = urdf::parseURDF(robot_model_str);
+      if(!model_)
+        ROS_ERROR_STREAM("Could not parse the urdf robot model "<<model_param_name);
+    }
   }
 
-  bool UrdfVehicleKinematic::getTrack(const std::string& left_wheel_name,
-                const std::string& right_wheel_name,
-                double& track)
+  bool UrdfVehicleKinematic::getTransformVector(const std::string& joint_name, const std::string& parent_link_name
+                                                , urdf::Vector3 &transform_vector)
   {
-    boost::shared_ptr<const urdf::Joint> left_wheel_joint(model_->getJoint(left_wheel_name));
-    boost::shared_ptr<const urdf::Joint> right_wheel_joint(model_->getJoint(right_wheel_name));
-    if (!left_wheel_joint)
+    if(model_)
     {
-      ROS_ERROR_STREAM(left_wheel_name
-                             << " couldn't be retrieved from model description");
-      return false;
+      boost::shared_ptr<const urdf::Joint> joint(model_->getJoint(joint_name));
+      if (!joint)
+      {
+        ROS_ERROR_STREAM(joint_name
+                               << " couldn't be retrieved from model description");
+        return false;
+      }
+
+      transform_vector = joint->parent_to_joint_origin_transform.position;
+      while(joint->parent_link_name != parent_link_name)
+      {
+        boost::shared_ptr<const urdf::Link> link_parent(model_->getLink(joint->parent_link_name));
+        if (!link_parent || !link_parent->parent_joint)
+        {
+          ROS_ERROR_STREAM(joint->parent_link_name
+                                 << " couldn't be retrieved from model description or his parent joint");
+          return false;
+        }
+        joint = link_parent->parent_joint;
+        transform_vector = transform_vector + joint->parent_to_joint_origin_transform.position;
+      }
+      return true;
     }
-
-    if (!right_wheel_joint)
-    {
-      ROS_ERROR_STREAM(right_wheel_name
-                             << " couldn't be retrieved from model description");
+    else
       return false;
-    }
+  }
 
-    boost::shared_ptr<const urdf::Link> left_wheel_link_parent(model_->getLink(left_wheel_joint->parent_link_name));
-    urdf::Vector3 left_transform_vector = static_cast<urdf::Vector3>(left_wheel_joint->parent_to_joint_origin_transform.position)
-                                          + left_wheel_link_parent->parent_joint->parent_to_joint_origin_transform.position;
+  bool UrdfVehicleKinematic::getDistanceBetweenJoints(const std::string& first_joint_name,
+                                                      const std::string& second_joint_name,
+                                                      double& distance)
+  {
+    urdf::Vector3 first_transform;
+    if(!getTransformVector(first_joint_name, "base_link", first_transform))
+      return false;
 
-    boost::shared_ptr<const urdf::Link> right_wheel_link_parent(model_->getLink(right_wheel_joint->parent_link_name));
-    urdf::Vector3 right_transform_vector = static_cast<urdf::Vector3>(right_wheel_joint->parent_to_joint_origin_transform.position)
-                                           + right_wheel_link_parent->parent_joint->parent_to_joint_origin_transform.position;
+    urdf::Vector3 second_transform;
+    if(!getTransformVector(second_joint_name, "base_link", second_transform))
+      return false;
 
-
-    ROS_DEBUG_STREAM("left wheel to origin: " << left_wheel_joint->parent_to_joint_origin_transform.position.x << ","
-                    << left_wheel_joint->parent_to_joint_origin_transform.position.y << ", "
-                    << left_wheel_joint->parent_to_joint_origin_transform.position.z);
-    ROS_DEBUG_STREAM("right wheel to origin: " << right_wheel_joint->parent_to_joint_origin_transform.position.x << ","
-                    << right_wheel_joint->parent_to_joint_origin_transform.position.y << ", "
-                    << right_wheel_joint->parent_to_joint_origin_transform.position.z);
-
-    track = euclideanOfVectors(left_transform_vector,
-                               right_transform_vector);
-    ROS_INFO_STREAM("right_transform_vector : "<<right_transform_vector.y<<" track "<<track);
+    distance = euclideanOfVectors(first_transform,
+                               second_transform);
+    ROS_INFO_STREAM("first_transform : "<<first_transform.x<<","<<first_transform.y);
+    ROS_INFO_STREAM("distance "<<distance);
     return true;
+  }
+
+  bool UrdfVehicleKinematic::getJointRadius(const std::string& joint_name,
+                                            double& radius)
+  {
+    if(model_)
+    {
+      boost::shared_ptr<const urdf::Joint> joint(model_->getJoint(joint_name));
+      // Get wheel radius
+      if (!getWheelRadius(model_->getLink(joint->child_link_name), radius))
+      {
+        ROS_ERROR_STREAM("Couldn't retrieve " << joint_name << " wheel radius");
+        return false;
+      }
+      return true;
+    }
+    else
+      return false;
   }
 
   bool UrdfVehicleKinematic::setOdomParamsFromUrdf(
