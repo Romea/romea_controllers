@@ -1,36 +1,20 @@
-<package>
+<package format="2">
   <name>ackermann_controller</name>
   <version>0.1.2</version>
   <description>Controller for a differential drive mobile base.</description>
   <maintainer email="vincent.rousseau@irstea.fr">Vincent Rousseau</maintainer>
   <author email="vincent.rousseau@irstea.fr">Vincent Rousseau</author>
 
-  <license>GPL</license>
-
-
+  <license>GPLv3</license>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>controller_interface</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>ackermann_msgs</build_depend>
-  <build_depend>realtime_tools</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>urdf</build_depend>
-
-  <run_depend>controller_interface</run_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>ackermann_msgs</run_depend>
-  <run_depend>realtime_tools</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>urdf</run_depend>
-
-  <!--Tests-->
-  <build_depend>rostest</build_depend>
-
-  <test_depend>std_srvs</test_depend>
-  <test_depend>controller_manager</test_depend>
-  <test_depend>xacro</test_depend>
+  <depend>controller_interface</depend>
+  <depend>nav_msgs</depend>
+  <depend>ackermann_msgs</depend>
+  <depend>realtime_tools</depend>
+  <depend>tf</depend>
+  <depend>urdf</depend>
 
   <export>
     <controller_interface plugin="${prefix}/ackermann_controller_plugins.xml"/>

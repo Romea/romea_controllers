@@ -5,16 +5,20 @@ project(ackermann_controller)
 file(GLOB_RECURSE EXTRA_FILES */*)
 add_custom_target(${PROJECT_NAME}_OTHER_FILES ALL WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} SOURCES ${EXTRA_FILES})
 
-find_package(catkin REQUIRED COMPONENTS
+set(${PROJECT_NAME}_CATKIN_DEPS
     controller_interface
-    urdf
+    nav_msgs
+    ackermann_msgs
     realtime_tools
     tf
-    nav_msgs)
+    urdf)
+
+find_package(catkin REQUIRED COMPONENTS ${${PROJECT_NAME}_CATKIN_DEPS})
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_DEPS}
 )
 
 include_directories(

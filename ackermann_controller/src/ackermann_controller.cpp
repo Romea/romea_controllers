@@ -100,6 +100,12 @@ namespace ackermann_controller{
           "#right wheels (" << right_wheel_names.size() << ").");
       return false;
     }
+    else if (left_wheel_names.size() != 2)
+    {
+      ROS_ERROR_STREAM_NAMED(name_,
+          "#two wheels by axle (left and right) is needed; now : "<<left_wheel_names.size()<<" .");
+      return false;
+    }
     else
     {
       wheel_joints_size_ = left_wheel_names.size();
@@ -121,6 +127,12 @@ namespace ackermann_controller{
       ROS_ERROR_STREAM_NAMED(name_,
           "#left steerings (" << left_steering_names.size() << ") != " <<
           "#right steerings (" << right_steering_names.size() << ").");
+      return false;
+    }
+    else if (left_steering_names.size() != 1)
+    {
+      ROS_ERROR_STREAM_NAMED(name_,
+          "#two steering by axle (left and right) is needed; now : "<<left_steering_names.size()<<" .");
       return false;
     }
     else

@@ -5,16 +5,20 @@ project(four_wheel_steering_controller)
 file(GLOB_RECURSE EXTRA_FILES */*)
 add_custom_target(${PROJECT_NAME}_OTHER_FILES ALL WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} SOURCES ${EXTRA_FILES})
 
-find_package(catkin REQUIRED COMPONENTS
+set(${PROJECT_NAME}_CATKIN_DEPS
     controller_interface
-    urdf
+    nav_msgs
+    four_wheel_steering_msgs
     realtime_tools
     tf
-    nav_msgs)
+    urdf)
+
+find_package(catkin REQUIRED COMPONENTS ${${PROJECT_NAME}_CATKIN_DEPS})
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} urdf_vehicle_kinematic
+  CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_DEPS}
 )
 
 include_directories(
@@ -26,7 +30,7 @@ add_library(urdf_vehicle_kinematic src/urdf_vehicle_kinematic.cpp)
 add_library(${PROJECT_NAME} src/four_wheel_steering_controller.cpp src/odometry.cpp src/speed_limiter.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} urdf_vehicle_kinematic)
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} urdf_vehicle_kinematic
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
