@@ -117,10 +117,6 @@ namespace ackermann_controller{
     /// Wheel base (distance between front and rear wheel:
     double wheel_base_;
 
-    /// Wheel separation and radius calibration multipliers:
-    double wheel_separation_multiplier_;
-    double wheel_radius_multiplier_;
-
     /// Timeout to consider cmd_vel commands old:
     double cmd_vel_timeout_;
 
@@ -174,18 +170,6 @@ namespace ackermann_controller{
     bool getWheelNames(ros::NodeHandle& controller_nh,
                        const std::string& wheel_param,
                        std::vector<std::string>& wheel_names);
-
-    /**
-     * \brief Sets odometry parameters from the URDF, i.e. the wheel radius and separation
-     * \param root_nh Root node handle
-     * \param left_wheel_name Name of the left wheel joint
-     * \param right_wheel_name Name of the right wheel joint
-     */
-    bool setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
-                               const std::string& left_wheel_name,
-                               const std::string& right_wheel_name,
-                               bool lookup_wheel_separation,
-                               bool lookup_wheel_radius);
 
     /**
      * \brief Sets the odometry publishing fields

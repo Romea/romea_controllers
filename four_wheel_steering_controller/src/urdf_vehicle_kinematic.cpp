@@ -61,7 +61,8 @@ static bool getWheelRadius(const boost::shared_ptr<const urdf::Link>& wheel_link
 }
 
 namespace four_wheel_steering_controller{
-  UrdfVehicleKinematic::UrdfVehicleKinematic(ros::NodeHandle& root_nh)
+  UrdfVehicleKinematic::UrdfVehicleKinematic(ros::NodeHandle& root_nh, const std::string& base_link):
+    base_link_(base_link)
   {
     // Parse robot description
     const std::string model_param_name = "robot_description";
@@ -116,11 +117,11 @@ namespace four_wheel_steering_controller{
                                                       double& distance)
   {
     urdf::Vector3 first_transform;
-    if(!getTransformVector(first_joint_name, "base_link", first_transform))
+    if(!getTransformVector(first_joint_name, base_link_, first_transform))
       return false;
 
     urdf::Vector3 second_transform;
-    if(!getTransformVector(second_joint_name, "base_link", second_transform))
+    if(!getTransformVector(second_joint_name, base_link_, second_transform))
       return false;
 
     distance = euclideanOfVectors(first_transform,
@@ -148,60 +149,4 @@ namespace four_wheel_steering_controller{
       return false;
   }
 
-  bool UrdfVehicleKinematic::setOdomParamsFromUrdf(
-                             const std::string& front_wheel_name,
-                             const std::string& rear_wheel_name,
-                             bool lookup_track,
-                             bool lookup_wheel_radius)
-  {
-    if (!(lookup_track || lookup_wheel_radius))
-    {
-      // Short-circuit in case we don't need to look up anything, so we don't have to parse the URDF
-      return true;
-    }
-
-    boost::shared_ptr<const urdf::Joint> front_wheel_joint(model_->getJoint(front_wheel_name));
-    boost::shared_ptr<const urdf::Joint> rear_wheel_joint(model_->getJoint(rear_wheel_name));
-
-    if (lookup_track)
-    {
-      // Get wheel separation
-      if (!front_wheel_joint)
-      {
-        ROS_ERROR_STREAM(front_wheel_name
-                               << " couldn't be retrieved from model description");
-        return false;
-      }
-
-      if (!rear_wheel_joint)
-      {
-        ROS_ERROR_STREAM(rear_wheel_name
-                               << " couldn't be retrieved from model description");
-        return false;
-      }
-
-      ROS_INFO_STREAM("left wheel to origin: " << front_wheel_joint->parent_to_joint_origin_transform.position.x << ","
-                      << front_wheel_joint->parent_to_joint_origin_transform.position.y << ", "
-                      << front_wheel_joint->parent_to_joint_origin_transform.position.z);
-      ROS_INFO_STREAM("right wheel to origin: " << rear_wheel_joint->parent_to_joint_origin_transform.position.x << ","
-                      << rear_wheel_joint->parent_to_joint_origin_transform.position.y << ", "
-                      << rear_wheel_joint->parent_to_joint_origin_transform.position.z);
-
-      track_ = euclideanOfVectors(front_wheel_joint->parent_to_joint_origin_transform.position,
-                                             rear_wheel_joint->parent_to_joint_origin_transform.position);
-
-    }
-
-    if (lookup_wheel_radius)
-    {
-      // Get wheel radius
-      if (!getWheelRadius(model_->getLink(front_wheel_joint->child_link_name), wheel_radius_))
-      {
-        ROS_ERROR_STREAM("Couldn't retrieve " << front_wheel_name << " wheel radius");
-        return false;
-      }
-    }
-
-    return true;
-  }
 }

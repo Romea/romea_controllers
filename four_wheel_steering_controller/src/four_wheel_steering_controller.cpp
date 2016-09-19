@@ -191,7 +191,7 @@ namespace four_wheel_steering_controller{
     bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
     bool lookup_wheel_base = !controller_nh.getParam("wheel_base", wheel_base_);
 
-    UrdfVehicleKinematic uvk(root_nh);
+    UrdfVehicleKinematic uvk(root_nh, base_frame_id_);
     if(lookup_track)
       if(!uvk.getDistanceBetweenJoints(front_wheel_names[0], front_wheel_names[1], track_))
         return false;
