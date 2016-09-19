@@ -13,7 +13,7 @@ namespace ackermann_controller
   , heading_(0.0)
   , linear_(0.0)
   , angular_(0.0)
-  , wheel_separation_(0.0)
+  , track_(0.0)
   , wheel_radius_(0.0)
   , wheel_base_(0.0)
   , left_wheel_old_pos_(0.0)
@@ -49,7 +49,7 @@ namespace ackermann_controller
 
     /// Compute linear and angular diff:
     const double linear  = (right_wheel_est_vel + left_wheel_est_vel) * 0.5 ;
-    const double angular = (right_wheel_est_vel - left_wheel_est_vel) / wheel_separation_;
+    const double angular = (right_wheel_est_vel - left_wheel_est_vel) / track_;
 
     /// Integrate odometry:
     integrate_fun_(linear, angular);
@@ -103,9 +103,9 @@ namespace ackermann_controller
     integrate_fun_(linear * dt, angular * dt);
   }
 
-  void Odometry::setWheelParams(double wheel_separation, double wheel_radius, double wheel_base)
+  void Odometry::setWheelParams(double track, double wheel_radius, double wheel_base)
   {
-    wheel_separation_ = wheel_separation;
+    track_ = track;
     wheel_radius_     = wheel_radius;
     wheel_base_       = wheel_base;
   }

@@ -103,11 +103,11 @@ namespace ackermann_controller
 
     /**
      * \brief Sets the wheel parameters: radius and separation
-     * \param wheel_separation Seperation between left and right wheels [m]
+     * \param track Seperation between left and right wheels [m]
      * \param wheel_radius     Wheel radius [m]
      * \param wheel_base       Wheel base [m]
      */
-    void setWheelParams(double wheel_separation, double wheel_radius, double wheel_base);
+    void setWheelParams(double track, double wheel_radius, double wheel_base);
 
     /**
      * \brief Velocity rolling window size setter
@@ -153,7 +153,7 @@ namespace ackermann_controller
     double angular_; // [rad/s]
 
     /// Wheel kinematic parameters [m]:
-    double wheel_separation_;
+    double track_;
     double wheel_radius_;
     double wheel_base_;
 

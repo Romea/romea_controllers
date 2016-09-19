@@ -79,10 +79,9 @@ namespace ackermann_controller{
     bool open_loop_;
 
     /// Hardware handles:
-    std::vector<hardware_interface::JointHandle> left_wheel_joints_;
-    std::vector<hardware_interface::JointHandle> right_wheel_joints_;
-    std::vector<hardware_interface::JointHandle> left_steering_joints_;
-    std::vector<hardware_interface::JointHandle> right_steering_joints_;
+    std::vector<hardware_interface::JointHandle> front_wheel_joints_;
+    std::vector<hardware_interface::JointHandle> rear_wheel_joints_;
+    std::vector<hardware_interface::JointHandle> front_steering_joints_;
 
     /// Velocity command related:
     struct Commands
@@ -108,13 +107,14 @@ namespace ackermann_controller{
     boost::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
     Odometry odometry_;
 
-    /// Wheel separation, wrt the midpoint of the wheel width:
-    double wheel_separation_;
+
+    /// Wheel separation (or track), distance between left and right wheels (from the midpoint of the wheel width):
+    double track_;
 
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double wheel_radius_;
 
-    /// Wheel base (distance between front and rear wheel:
+    /// Wheel base (distance between front and rear wheel):
     double wheel_base_;
 
     /// Timeout to consider cmd_vel commands old:
@@ -128,12 +128,6 @@ namespace ackermann_controller{
 
     /// Whether the control is make with ackermann msg or twist msg:
     bool enable_twist_cmd_;
-
-    /// Number of wheel joints:
-    size_t wheel_joints_size_;
-    /// Number of steering joints:
-    size_t steering_joints_size_;
-
 
     /// Speed limiters:
     Commands last1_cmd_;

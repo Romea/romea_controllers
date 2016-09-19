@@ -5,6 +5,7 @@
 #include <boost/assign.hpp>
 
 #include <four_wheel_steering_controller/four_wheel_steering_controller.h>
+#include <four_wheel_steering_controller/urdf_vehicle_kinematic.h>
 
 namespace four_wheel_steering_controller{
 
@@ -19,8 +20,6 @@ namespace four_wheel_steering_controller{
     , base_frame_id_("base_link")
     , enable_odom_tf_(true)
     , enable_twist_cmd_(false)
-    , wheel_joints_size_(0)
-    , steering_joints_size_(0)
   {
   }
 
@@ -106,10 +105,8 @@ namespace four_wheel_steering_controller{
     }
     else
     {
-      wheel_joints_size_ = front_wheel_names.size();
-
-      front_wheel_joints_.resize(wheel_joints_size_);
-      rear_wheel_joints_.resize(wheel_joints_size_);
+      front_wheel_joints_.resize(front_wheel_names.size());
+      rear_wheel_joints_.resize(front_wheel_names.size());
     }
 
     // Get steering joint names from the parameter server
@@ -135,10 +132,8 @@ namespace four_wheel_steering_controller{
     }
     else
     {
-      steering_joints_size_ = front_steering_names.size();
-
-      front_steering_joints_.resize(steering_joints_size_);
-      rear_steering_joints_.resize(steering_joints_size_);
+      front_steering_joints_.resize(front_steering_names.size());
+      rear_steering_joints_.resize(front_steering_names.size());
     }
 
     // Odometry related:
@@ -222,7 +217,7 @@ namespace four_wheel_steering_controller{
     setOdomPubFields(root_nh, controller_nh);
 
     // Get the joint object to use in the realtime loop
-    for (int i = 0; i < wheel_joints_size_; ++i)
+    for (int i = 0; i < front_wheel_joints_.size(); ++i)
     {
       ROS_INFO_STREAM_NAMED(name_,
                             "Adding left wheel with joint name: " << front_wheel_names[i]
@@ -232,7 +227,7 @@ namespace four_wheel_steering_controller{
     }
 
     // Get the steering joint object to use in the realtime loop
-    for (int i = 0; i < steering_joints_size_; ++i)
+    for (int i = 0; i < front_steering_joints_.size(); ++i)
     {
       ROS_INFO_STREAM_NAMED(name_,
                             "Adding left steering with joint name: " << front_steering_names[i]
@@ -258,42 +253,42 @@ namespace four_wheel_steering_controller{
     }
     else
     {
-      double left_pos  = 0.0;
-      double right_pos = 0.0;
-      double left_vel  = 0.0;
-      double right_vel = 0.0;
-      for (size_t i = 0; i < wheel_joints_size_; ++i)
+      double front_pos  = 0.0;
+      double rear_pos = 0.0;
+      double front_vel  = 0.0;
+      double rear_vel = 0.0;
+      for (size_t i = 0; i < front_wheel_joints_.size(); ++i)
       {
-        const double lp = front_wheel_joints_[i].getPosition();
+        const double fp = front_wheel_joints_[i].getPosition();
         const double rp = rear_wheel_joints_[i].getPosition();
-        if (std::isnan(lp) || std::isnan(rp))
+        if (std::isnan(fp) || std::isnan(rp))
           return;
-        left_pos  += lp;
-        right_pos += rp;
+        front_pos  += fp;
+        rear_pos += rp;
 
         const double ls = front_wheel_joints_[i].getVelocity();
         const double rs = rear_wheel_joints_[i].getVelocity();
         if (std::isnan(ls) || std::isnan(rs))
           return;
-        left_vel  += ls;
-        right_vel += rs;
+        front_vel  += ls;
+        rear_vel += rs;
       }
-      left_pos  /= wheel_joints_size_;
-      right_pos /= wheel_joints_size_;
-      left_vel  /= wheel_joints_size_;
-      right_vel /= wheel_joints_size_;
-      double wheel_angular_pos = (left_pos + right_pos)/2.0;
-      double wheel_angular_vel = (left_vel + right_vel)/2.0;
+      front_pos  /= front_wheel_joints_.size();
+      rear_pos /= front_wheel_joints_.size();
+      front_vel  /= front_wheel_joints_.size();
+      rear_vel /= front_wheel_joints_.size();
+      double wheel_angular_pos = (front_pos + rear_pos)/2.0;
+      double wheel_angular_vel = (front_vel + rear_vel)/2.0;
 
       double front_steering_pos = 0.0;
       double rear_steering_pos = 0.0;
-      for (size_t i = 0; i < steering_joints_size_; ++i)
+      for (size_t i = 0; i < front_steering_joints_.size(); ++i)
       {
         front_steering_pos += front_steering_joints_[i].getPosition();
         rear_steering_pos += rear_steering_joints_[i].getPosition();
       }
-      front_steering_pos /= steering_joints_size_;
-      rear_steering_pos /= steering_joints_size_;
+      front_steering_pos /= front_steering_joints_.size();
+      rear_steering_pos /= front_steering_joints_.size();
 
       ROS_DEBUG_STREAM("wheel_angular_vel "<<wheel_angular_vel<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
       // Estimate linear and angular velocity using joint information
@@ -424,14 +419,14 @@ namespace four_wheel_steering_controller{
   void FourWheelSteeringController::brake()
   {
     const double vel = 0.0;
-    for (size_t i = 0; i < wheel_joints_size_; ++i)
+    for (size_t i = 0; i < front_wheel_joints_.size(); ++i)
     {
       front_wheel_joints_[i].setCommand(vel);
       rear_wheel_joints_[i].setCommand(vel);
     }
 
     const double pos = 0.0;
-    for (size_t i = 0; i < steering_joints_size_; ++i)
+    for (size_t i = 0; i < front_steering_joints_.size(); ++i)
     {
       front_steering_joints_[i].setCommand(pos);
       rear_steering_joints_[i].setCommand(pos);

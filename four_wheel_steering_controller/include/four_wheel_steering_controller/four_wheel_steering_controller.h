@@ -12,7 +12,6 @@
 
 #include <four_wheel_steering_controller/odometry.h>
 #include <four_wheel_steering_controller/speed_limiter.h>
-#include <four_wheel_steering_controller/urdf_vehicle_kinematic.h>
 
 namespace four_wheel_steering_controller{
 
@@ -130,12 +129,6 @@ namespace four_wheel_steering_controller{
 
     /// Whether the control is make with four_wheel_steering msg or twist msg:
     bool enable_twist_cmd_;
-
-    /// Number of wheel joints:
-    size_t wheel_joints_size_;
-    /// Number of steering joints:
-    size_t steering_joints_size_;
-
 
     /// Speed limiters:
     Commands last1_cmd_;
