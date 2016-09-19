@@ -87,7 +87,7 @@ namespace ackermann_controller{
 
     // Get joint names from the parameter server
     std::vector<std::string> front_wheel_names, rear_wheel_names;
-    if (!getWheelNames(controller_nh, "left_wheel", front_wheel_names) or
+    if (!getWheelNames(controller_nh, "front_wheel", front_wheel_names) or
         !getWheelNames(controller_nh, "rear_wheel", rear_wheel_names))
     {
       return false;
@@ -96,8 +96,8 @@ namespace ackermann_controller{
     if (front_wheel_names.size() != rear_wheel_names.size())
     {
       ROS_ERROR_STREAM_NAMED(name_,
-          "#left wheels (" << front_wheel_names.size() << ") != " <<
-          "#right wheels (" << rear_wheel_names.size() << ").");
+          "#front wheels (" << front_wheel_names.size() << ") != " <<
+          "#rear wheels (" << rear_wheel_names.size() << ").");
       return false;
     }
     else if (front_wheel_names.size() != 2)
@@ -214,8 +214,8 @@ namespace ackermann_controller{
     for (int i = 0; i < front_wheel_joints_.size(); ++i)
     {
       ROS_INFO_STREAM_NAMED(name_,
-                            "Adding left wheel with joint name: " << front_wheel_names[i]
-                            << " and right wheel with joint name: " << rear_wheel_names[i]);
+                            "Adding front wheel with joint name: " << front_wheel_names[i]
+                            << " and rear wheel with joint name: " << rear_wheel_names[i]);
       front_wheel_joints_[i] = hw_vel->getHandle(front_wheel_names[i]);  // throws on failure
       rear_wheel_joints_[i] = hw_vel->getHandle(rear_wheel_names[i]);  // throws on failure
     }
@@ -356,7 +356,7 @@ namespace ackermann_controller{
     const double vel_left_rear = (curr_cmd.lin - angular_speed*ws/2)/wr;
     const double vel_right_rear = (curr_cmd.lin + angular_speed*ws/2)/wr;
     // Set wheels velocities:
-    if(front_wheel_joints_.size() > 1 && rear_wheel_joints_.size() > 1)
+    if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {
       front_wheel_joints_[0].setCommand(vel_left_front);
       rear_wheel_joints_[0].setCommand(vel_right_front);
