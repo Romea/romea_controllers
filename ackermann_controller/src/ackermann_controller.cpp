@@ -17,7 +17,8 @@ namespace ackermann_controller{
     , command_struct_()
     , command_struct_ackermann_()
     , track_(0.0)
-    , wheel_radius_(0.0)
+    , front_wheel_radius_(0.0)
+    , rear_wheel_radius_(0.0)
     , wheel_base_(0.0)
     , cmd_vel_timeout_(0.5)
     , base_frame_id_("base_link")
@@ -177,35 +178,52 @@ namespace ackermann_controller{
 
     // If either parameter is not available, we need to look up the value in the URDF
     bool lookup_track = !controller_nh.getParam("track", track_);
-    bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
+    double wheel_radius = 0.0;
+    bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius);
     bool lookup_wheel_base = !controller_nh.getParam("wheel_base", wheel_base_);
 
     four_wheel_steering_controller::UrdfVehicleKinematic uvk(root_nh, base_frame_id_);
     if(lookup_track)
+    {
       if(!uvk.getDistanceBetweenJoints(front_wheel_names[0], front_wheel_names[1], track_))
         return false;
       else
         controller_nh.setParam("track",track_);
+    }
     if(lookup_wheel_radius)
-      if(!uvk.getJointRadius(front_wheel_names[0], wheel_radius_))
+    {
+      if(!uvk.getJointRadius(front_wheel_names[0], front_wheel_radius_))
         return false;
       else
-        controller_nh.setParam("wheel_radius",wheel_radius_);
+        controller_nh.setParam("front_wheel_radius",front_wheel_radius_);
+
+      if(!uvk.getJointRadius(rear_wheel_names[0], rear_wheel_radius_))
+        return false;
+      else
+        controller_nh.setParam("rear_wheel_radius",rear_wheel_radius_);
+    }
+    else
+    {
+      front_wheel_radius_ = wheel_radius;
+      rear_wheel_radius_ = wheel_radius;
+    }
     if(lookup_wheel_base)
+    {
       if(!uvk.getDistanceBetweenJoints(front_wheel_names[0], rear_wheel_names[0], wheel_base_))
         return false;
       else
         controller_nh.setParam("wheel_base",wheel_base_);
+    }
 
     // Regardless of how we got the separation and radius, use them
     // to set the odometry parameters
     const double ws = track_;
-    const double wr = wheel_radius_;
     const double wb = wheel_base_;
-    odometry_.setWheelParams(ws, wr, wb);
+    odometry_.setWheelParams(ws, front_wheel_radius_, rear_wheel_radius_, wb);
     ROS_INFO_STREAM_NAMED(name_,
                           "Odometry params : wheel separation " << ws
-                          << ", wheel radius " << wr
+                          << ", front wheel radius " << front_wheel_radius_
+                          << ", rear wheel radius " << rear_wheel_radius_
                           << ", wheel base " << wb);
 
     setOdomPubFields(root_nh, controller_nh);
@@ -269,8 +287,6 @@ namespace ackermann_controller{
       rear_pos /= front_wheel_joints_.size();
       front_vel  /= front_wheel_joints_.size();
       rear_vel /= front_wheel_joints_.size();
-      double wheel_angular_pos = (front_pos + rear_pos)/2.0;
-      double wheel_angular_vel = (front_vel + rear_vel)/2.0;
 
       double front_steering_pos = 0.0;
       for (size_t i = 0; i < front_steering_joints_.size(); ++i)
@@ -279,9 +295,9 @@ namespace ackermann_controller{
       }
       front_steering_pos = front_steering_pos/front_steering_joints_.size();
 
-      ROS_DEBUG_STREAM("wheel_angular_vel "<<wheel_angular_vel<<" front_steering_pos "<<front_steering_pos);
+      ROS_DEBUG_STREAM("front_vel "<<front_vel<<" front_steering_pos "<<front_steering_pos);
       // Estimate linear and angular velocity using joint information
-      odometry_.update(wheel_angular_pos, wheel_angular_vel, front_steering_pos, time);
+      odometry_.update(front_pos, front_vel, rear_pos, rear_vel, front_steering_pos);
     }
 
     // Publish odometry message
@@ -345,16 +361,17 @@ namespace ackermann_controller{
 
 
     const double angular_speed = odometry_.getAngular();
-    // Apply multipliers:
-    const double ws = track_;
-    const double wr = wheel_radius_;
 
-    ROS_DEBUG_STREAM("angular_speed "<<angular_speed<<" curr_cmd.lin "<<curr_cmd.lin<< " wr "<<wr);
+    ROS_DEBUG_STREAM("angular_speed "<<angular_speed<<" curr_cmd.lin "<<curr_cmd.lin);
     // Compute wheels velocities:
-    const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin - angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
-    const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin + angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
-    const double vel_left_rear = (curr_cmd.lin - angular_speed*ws/2)/wr;
-    const double vel_right_rear = (curr_cmd.lin + angular_speed*ws/2)/wr;
+    const double vel_left_front  = copysign(1.0, curr_cmd.lin) *
+                                   sqrt((pow((curr_cmd.lin - angular_speed*track_/2),2)
+                                         +pow(wheel_base_*angular_speed,2)))/front_wheel_radius_;
+    const double vel_right_front = copysign(1.0, curr_cmd.lin) *
+                                   sqrt((pow((curr_cmd.lin + angular_speed*track_/2),2)+
+                                         pow(wheel_base_*angular_speed,2)))/front_wheel_radius_;
+    const double vel_left_rear = (curr_cmd.lin - angular_speed*track_/2)/rear_wheel_radius_;
+    const double vel_right_rear = (curr_cmd.lin + angular_speed*track_/2)/rear_wheel_radius_;
     // Set wheels velocities:
     if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {

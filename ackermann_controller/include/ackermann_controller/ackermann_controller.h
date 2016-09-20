@@ -112,7 +112,7 @@ namespace ackermann_controller{
     double track_;
 
     /// Wheel radius (assuming it's the same for the left and right wheels):
-    double wheel_radius_;
+    double front_wheel_radius_, rear_wheel_radius_;
 
     /// Wheel base (distance between front and rear wheel):
     double wheel_base_;
