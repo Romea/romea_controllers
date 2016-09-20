@@ -178,8 +178,8 @@ namespace ackermann_controller{
 
     // If either parameter is not available, we need to look up the value in the URDF
     bool lookup_track = !controller_nh.getParam("track", track_);
-    double wheel_radius = 0.0;
-    bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius);
+    bool lookup_front_wheel_radius = !controller_nh.getParam("front_wheel_radius", front_wheel_radius_);
+    bool lookup_rear_wheel_radius = !controller_nh.getParam("rear_wheel_radius", rear_wheel_radius_);
     bool lookup_wheel_base = !controller_nh.getParam("wheel_base", wheel_base_);
 
     four_wheel_steering_controller::UrdfVehicleKinematic uvk(root_nh, base_frame_id_);
@@ -190,22 +190,19 @@ namespace ackermann_controller{
       else
         controller_nh.setParam("track",track_);
     }
-    if(lookup_wheel_radius)
+    if(lookup_front_wheel_radius)
     {
       if(!uvk.getJointRadius(front_wheel_names[0], front_wheel_radius_))
         return false;
       else
         controller_nh.setParam("front_wheel_radius",front_wheel_radius_);
-
+    }
+    if(lookup_rear_wheel_radius)
+    {
       if(!uvk.getJointRadius(rear_wheel_names[0], rear_wheel_radius_))
         return false;
       else
         controller_nh.setParam("rear_wheel_radius",rear_wheel_radius_);
-    }
-    else
-    {
-      front_wheel_radius_ = wheel_radius;
-      rear_wheel_radius_ = wheel_radius;
     }
     if(lookup_wheel_base)
     {
