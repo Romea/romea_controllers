@@ -26,6 +26,7 @@ include_directories(
 )
 
 add_library(urdf_vehicle_kinematic src/urdf_vehicle_kinematic.cpp)
+target_link_libraries(urdf_vehicle_kinematic ${catkin_LIBRARIES})
 
 add_library(${PROJECT_NAME} src/four_wheel_steering_controller.cpp src/odometry.cpp src/speed_limiter.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} urdf_vehicle_kinematic)
