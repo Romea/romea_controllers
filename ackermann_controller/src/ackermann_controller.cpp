@@ -285,12 +285,13 @@ namespace ackermann_controller{
       front_vel  /= front_wheel_joints_.size();
       rear_vel /= front_wheel_joints_.size();
 
-      double front_steering_pos = 0.0;
-      for (size_t i = 0; i < front_steering_joints_.size(); ++i)
+      double front_left_steering_pos = 0.0, front_right_steering_pos = 0.0;
+      if (front_steering_joints_.size() == 2)
       {
-        front_steering_pos += front_steering_joints_[i].getPosition();
+        front_left_steering_pos = front_steering_joints_[0].getPosition();
+        front_right_steering_pos = front_steering_joints_[1].getPosition();
       }
-      front_steering_pos = front_steering_pos/front_steering_joints_.size();
+      double front_steering_pos = atan2(2, 1/tan(front_left_steering_pos) + 1/tan(front_right_steering_pos));
 
       ROS_DEBUG_STREAM("front_vel "<<front_vel<<" front_steering_pos "<<front_steering_pos);
       // Estimate linear and angular velocity using joint information
@@ -373,27 +374,35 @@ namespace ackermann_controller{
     if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {
       front_wheel_joints_[0].setCommand(vel_left_front);
-      rear_wheel_joints_[0].setCommand(vel_right_front);
-      front_wheel_joints_[1].setCommand(vel_left_rear);
+      rear_wheel_joints_[0].setCommand(vel_left_rear);
+      front_wheel_joints_[1].setCommand(vel_right_front);
       rear_wheel_joints_[1].setCommand(vel_right_rear);
     }
 
-    double front_steering = 0;
+    double front_left_steering = 0, front_right_steering = 0;;
     if(enable_twist_cmd_ == true)
     {
       if(fabs(odometry_.getLinear()) > 0.01)
-        front_steering = atan(curr_cmd.ang*wheel_base_/odometry_.getLinear());
+      {
+        front_left_steering = atan2(curr_cmd.ang*wheel_base_,
+                                    odometry_.getLinear() - curr_cmd.ang*track_/2.0);
+        front_right_steering = atan2(curr_cmd.ang*wheel_base_,
+                                     odometry_.getLinear() + curr_cmd.ang*track_/2.0);
+      }
     }
     else
     {
-      front_steering = curr_cmd.steering;
+      front_left_steering = atan2(tan(curr_cmd.steering),
+                                  1 - tan(curr_cmd.steering)*track_/(2*wheel_base_));
+      front_right_steering = atan2(tan(curr_cmd.steering),
+                                   1 + tan(curr_cmd.steering)*track_/(2*wheel_base_));
     }
 
     if(front_steering_joints_.size() == 2)
     {
-      ROS_DEBUG_STREAM("front_steering "<<front_steering);
-      front_steering_joints_[0].setCommand(front_steering);
-      front_steering_joints_[1].setCommand(front_steering);
+      ROS_DEBUG_STREAM("front_left_steering "<<front_left_steering<<"front_right_steering "<<front_right_steering);
+      front_steering_joints_[0].setCommand(front_left_steering);
+      front_steering_joints_[1].setCommand(front_right_steering);
     }
   }
 
