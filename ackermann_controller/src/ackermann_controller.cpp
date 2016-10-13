@@ -379,7 +379,7 @@ namespace ackermann_controller{
       rear_wheel_joints_[1].setCommand(vel_right_rear);
     }
 
-    double front_left_steering = 0, front_right_steering = 0;;
+    double front_left_steering = 0, front_right_steering = 0;
     if(enable_twist_cmd_ == true)
     {
       if(fabs(odometry_.getLinear()) > 0.01)

@@ -362,10 +362,14 @@ namespace four_wheel_steering_controller{
 
     ROS_DEBUG_STREAM("angular_speed "<<angular_speed<<" curr_cmd.lin "<<curr_cmd.lin<< " wr "<<wr);
     // Compute wheels velocities:
-    const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin - angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
-    const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow((curr_cmd.lin + angular_speed*ws/2),2)+pow(wheel_base_*angular_speed,2)))/wr;
-    const double vel_left_rear = (curr_cmd.lin - angular_speed*ws/2)/wr;
-    const double vel_right_rear = (curr_cmd.lin + angular_speed*ws/2)/wr;
+    const double vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin - angular_speed*ws/2,2)
+                                                                       +pow(wheel_base_*angular_speed/2.0,2)))/wr;
+    const double vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin + angular_speed*ws/2,2)
+                                                                       +pow(wheel_base_*angular_speed/2.0,2)))/wr;
+    const double vel_left_rear = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin - angular_speed*ws/2,2)
+                                                                     +pow(wheel_base_*angular_speed/2.0,2)))/wr;
+    const double vel_right_rear = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin + angular_speed*ws/2,2)
+                                                                      +pow(wheel_base_*angular_speed/2.0,2)))/wr;
     // Set wheels velocities:
     if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {
@@ -375,29 +379,37 @@ namespace four_wheel_steering_controller{
       rear_wheel_joints_[1].setCommand(vel_right_rear);
     }
 
-    double front_steering = 0, rear_steering = 0;
+    double front_left_steering = 0, front_right_steering = 0;
+    double rear_left_steering = 0, rear_right_steering = 0;
     if(enable_twist_cmd_ == true)
     {
       if(fabs(odometry_.getLinear()) > 0.01)
       {
-        double steering = atan(curr_cmd.ang*wheel_base_/odometry_.getLinear());
-        front_steering = steering/2.0;
-        rear_steering = -steering/2.0;
+        front_left_steering = atan2(curr_cmd.ang*wheel_base_,
+                                    2.0*odometry_.getLinear() - curr_cmd.ang*track_);
+        front_right_steering = atan2(curr_cmd.ang*wheel_base_,
+                                     2.0*odometry_.getLinear() + curr_cmd.ang*track_);
+        rear_left_steering = -atan2(curr_cmd.ang*wheel_base_,
+                                    2.0*odometry_.getLinear() - curr_cmd.ang*track_);
+        rear_right_steering = -atan2(curr_cmd.ang*wheel_base_,
+                                     2.0*odometry_.getLinear() + curr_cmd.ang*track_);
       }
     }
     else
     {
-      front_steering = curr_cmd.front_steering;
-      rear_steering = curr_cmd.rear_steering;
+      front_left_steering = curr_cmd.front_steering;
+      front_right_steering = curr_cmd.front_steering;
+      rear_left_steering = curr_cmd.rear_steering;
+      rear_right_steering = curr_cmd.rear_steering;
     }
 
     if(front_steering_joints_.size() == 2 && rear_steering_joints_.size() == 2)
     {
-      ROS_DEBUG_STREAM("front_steering "<<front_steering<<" rear_steering "<<rear_steering);
-      front_steering_joints_[0].setCommand(front_steering);
-      front_steering_joints_[1].setCommand(front_steering);
-      rear_steering_joints_[0].setCommand(rear_steering);
-      rear_steering_joints_[1].setCommand(rear_steering);
+      ROS_DEBUG_STREAM("front_left_steering "<<front_left_steering<<" rear_right_steering "<<rear_right_steering);
+      front_steering_joints_[0].setCommand(front_left_steering);
+      front_steering_joints_[1].setCommand(front_right_steering);
+      rear_steering_joints_[0].setCommand(rear_left_steering);
+      rear_steering_joints_[1].setCommand(rear_right_steering);
     }
   }
 
