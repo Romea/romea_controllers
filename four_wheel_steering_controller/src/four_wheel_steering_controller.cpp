@@ -383,17 +383,25 @@ namespace four_wheel_steering_controller{
     double rear_left_steering = 0, rear_right_steering = 0;
     if(enable_twist_cmd_ == true)
     {
-      if(fabs(odometry_.getLinear()) > 0.01)
+      if(fabs(2.0*odometry_.getLinear()) > fabs(curr_cmd.ang*track_))
       {
-        front_left_steering = atan2(curr_cmd.ang*wheel_base_,
-                                    2.0*odometry_.getLinear() - curr_cmd.ang*track_);
-        front_right_steering = atan2(curr_cmd.ang*wheel_base_,
-                                     2.0*odometry_.getLinear() + curr_cmd.ang*track_);
-        rear_left_steering = -atan2(curr_cmd.ang*wheel_base_,
-                                    2.0*odometry_.getLinear() - curr_cmd.ang*track_);
-        rear_right_steering = -atan2(curr_cmd.ang*wheel_base_,
-                                     2.0*odometry_.getLinear() + curr_cmd.ang*track_);
+        front_left_steering = atan(curr_cmd.ang*wheel_base_ /
+                                    (2.0*odometry_.getLinear() - curr_cmd.ang*track_));
+        front_right_steering = atan(curr_cmd.ang*wheel_base_ /
+                                     (2.0*odometry_.getLinear() + curr_cmd.ang*track_));
+        rear_left_steering = -atan(curr_cmd.ang*wheel_base_ /
+                                    (2.0*odometry_.getLinear() - curr_cmd.ang*track_));
+        rear_right_steering = -atan(curr_cmd.ang*wheel_base_ /
+                                     (2.0*odometry_.getLinear() + curr_cmd.ang*track_));
       }
+      else
+      {
+        front_left_steering = copysign(M_PI_2, curr_cmd.ang);
+        front_right_steering = copysign(M_PI_2, curr_cmd.ang);
+        rear_left_steering = copysign(M_PI_2, -curr_cmd.ang);
+        rear_right_steering = copysign(M_PI_2, -curr_cmd.ang);
+      }
+
     }
     else
     {
@@ -402,6 +410,8 @@ namespace four_wheel_steering_controller{
       rear_left_steering = curr_cmd.rear_steering;
       rear_right_steering = curr_cmd.rear_steering;
     }
+
+    /// TODO check limits to not apply the same steering on right and left when saturated !
 
     if(front_steering_joints_.size() == 2 && rear_steering_joints_.size() == 2)
     {

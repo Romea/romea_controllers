@@ -382,12 +382,17 @@ namespace ackermann_controller{
     double front_left_steering = 0, front_right_steering = 0;
     if(enable_twist_cmd_ == true)
     {
-      if(fabs(odometry_.getLinear()) > 0.01)
+      if(fabs(odometry_.getLinear()) > fabs(curr_cmd.ang*track_/2.0))
       {
-        front_left_steering = atan2(curr_cmd.ang*wheel_base_,
-                                    odometry_.getLinear() - curr_cmd.ang*track_/2.0);
-        front_right_steering = atan2(curr_cmd.ang*wheel_base_,
-                                     odometry_.getLinear() + curr_cmd.ang*track_/2.0);
+        front_left_steering = atan(curr_cmd.ang*wheel_base_ /
+                                    (odometry_.getLinear() - curr_cmd.ang*track_/2.0));
+        front_right_steering = atan(curr_cmd.ang*wheel_base_ /
+                                     (odometry_.getLinear() + curr_cmd.ang*track_/2.0));
+      }
+      else
+      {
+        front_left_steering = copysign(M_PI_2, curr_cmd.ang);
+        front_right_steering = copysign(M_PI_2, curr_cmd.ang);
       }
     }
     else
@@ -397,6 +402,8 @@ namespace ackermann_controller{
       front_right_steering = atan2(tan(curr_cmd.steering),
                                    1 + tan(curr_cmd.steering)*track_/(2*wheel_base_));
     }
+
+    /// TODO check limits to not apply the same steering on right and left when saturated !
 
     if(front_steering_joints_.size() == 2)
     {
