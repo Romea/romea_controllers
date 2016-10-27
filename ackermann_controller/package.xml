@@ -17,6 +17,8 @@
   <depend>urdf</depend>
   <depend>four_wheel_steering_controller</depend>
 
+  <test_depend>rostest</test_depend>
+
   <export>
     <controller_interface plugin="${prefix}/ackermann_controller_plugins.xml"/>
   </export>

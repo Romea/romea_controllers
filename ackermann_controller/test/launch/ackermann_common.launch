@@ -1,7 +1,7 @@
 <launch>
   <!-- Load ackermann model -->
   <param name="robot_description"
-         command="$(find xacro)/xacro '$(find ackermann_controller)/test/urdf/ackermann.xacro'" />
+         command="$(find xacro)/xacro '$(find ackermann_controller)/test/urdf/ackermann.urdf.xacro'" />
 
   <!-- Start ackermann -->
   <node name="ackermann"
@@ -9,7 +9,7 @@
       type="ackermann"/>
 
   <!-- Load controller config -->
-  <rosparam command="load" file="$(find ackermann_controller)/test/ackermann_controllers.yaml" />
+  <rosparam command="load" file="$(find ackermann_controller)/test/config/ackermann_controllers.yaml" />
 
   <!-- Spawn controller -->
   <node name="controller_spawner"

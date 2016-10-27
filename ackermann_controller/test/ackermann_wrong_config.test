@@ -1,0 +1,16 @@
+<launch>
+  <!-- Load common test stuff -->
+  <include file="$(find ackermann_controller)/test/launch/ackermann_common.launch" />
+
+  <!-- Override with wrong controller configuration -->
+  <rosparam command="load" file="$(find ackermann_controller)/test/config/ackermann_wrong_config.yaml" />
+
+  <!-- Controller test -->
+  <test test-name="ackermann_wrong_config_test"
+        pkg="ackermann_controller"
+        type="ackermann_wrong_config_test"
+        time-limit="10.0">
+    <remap from="cmd_vel" to="ackermann_controller/cmd_vel" />
+    <remap from="odom" to="ackermann_controller/odom" />
+  </test>
+</launch>

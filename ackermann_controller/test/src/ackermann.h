@@ -26,29 +26,27 @@ public:
   , start_srv_(nh_.advertiseService("start", &Ackermann::start_callback, this))
   , stop_srv_(nh_.advertiseService("stop", &Ackermann::stop_callback, this))
   {
+    std::vector<std::string> velocity_joints_name = {"front_left_wheel", "front_right_wheel",
+                                                     "rear_left_wheel", "rear_right_wheel"};
     // Connect and register the joint state and velocity interface
     for (unsigned int i = 0; i < 4; ++i)
     {
-      std::ostringstream os;
-      os << "wheel_" << i << "_joint";
 
-      hardware_interface::JointStateHandle state_handle(os.str(), &joints_[i].position, &joints_[i].velocity, &joints_[i].effort);
+      hardware_interface::JointStateHandle state_handle(velocity_joints_name[i], &joints_[i].position, &joints_[i].velocity, &joints_[i].effort);
       jnt_state_interface_.registerHandle(state_handle);
 
-      hardware_interface::JointHandle vel_handle(jnt_state_interface_.getHandle(os.str()), &joints_[i].velocity_command);
+      hardware_interface::JointHandle vel_handle(jnt_state_interface_.getHandle(velocity_joints_name[i]), &joints_[i].velocity_command);
       jnt_vel_interface_.registerHandle(vel_handle);
     }
 
+    std::vector<std::string> position_joints_name = {"front_left_steering_joint", "front_right_steering_joint"};
     // Connect and register the joint state and position interface
     for (unsigned int i = 0; i < 2; ++i)
     {
-      std::ostringstream os;
-      os << "steering_" << i << "_joint";
-
-      hardware_interface::JointStateHandle state_handle(os.str(), &steering_joints_[i].position, &steering_joints_[i].velocity, &steering_joints_[i].effort);
+      hardware_interface::JointStateHandle state_handle(position_joints_name[i], &steering_joints_[i].position, &steering_joints_[i].velocity, &steering_joints_[i].effort);
       jnt_state_interface_.registerHandle(state_handle);
 
-      hardware_interface::JointHandle pos_handle(jnt_state_interface_.getHandle(os.str()), &steering_joints_[i].position_command);
+      hardware_interface::JointHandle pos_handle(jnt_state_interface_.getHandle(position_joints_name[i]), &steering_joints_[i].position_command);
       jnt_pos_interface_.registerHandle(pos_handle);
     }
 
