@@ -1,0 +1,26 @@
+<launch>
+  <!-- start world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch"/>
+
+  <!-- load robot -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro.py '$(find ackermann_controller)/test/ackermann.xacro'" />
+
+  <!-- Start ackermann -->
+  <node name="ackermann"
+      pkg="ackermann_controller"
+      type="ackermann"/>
+
+  <!-- Load controller config -->
+  <rosparam command="load" file="$(find ackermann_controller)/test/ackermann_controllers.yaml" />
+
+  <!-- Spawn controller -->
+  <node name="controller_spawner"
+        pkg="controller_manager" type="spawner" output="screen"
+        args="ackermann_controller" />
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_ackermann" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model ackermann -z 0.5" respawn="false" output="screen" />
+
+</launch>
+

@@ -1,0 +1,31 @@
+<launch>
+  <!-- Load ackermann model -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find ackermann_controller)/test/urdf/ackermann.xacro'" />
+
+  <!-- Start ackermann -->
+  <node name="ackermann"
+      pkg="ackermann_controller"
+      type="ackermann"/>
+
+  <!-- Load controller config -->
+  <rosparam command="load" file="$(find ackermann_controller)/test/ackermann_controllers.yaml" />
+
+  <!-- Spawn controller -->
+  <node name="controller_spawner"
+        pkg="controller_manager" type="spawner" output="screen"
+        args="ackermann_controller" />
+
+  <!-- rqt_plot monitoring -->
+
+  <!--<node name="ackermann_pos_monitor"
+        pkg="rqt_plot"
+        type="rqt_plot"
+        args="/ackermann_controller/odom/pose/pose/position/x" />
+
+  <node name="ackermann_vel_monitor"
+        pkg="rqt_plot"
+        type="rqt_plot"
+        args="/ackermann_controller/odom/twist/twist/linear/x" />-->
+
+</launch>
