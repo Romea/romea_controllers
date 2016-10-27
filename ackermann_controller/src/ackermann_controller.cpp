@@ -391,8 +391,16 @@ namespace ackermann_controller{
       }
       else
       {
-        front_left_steering = copysign(M_PI_2, curr_cmd.ang);
-        front_right_steering = copysign(M_PI_2, curr_cmd.ang);
+        if(fabs(curr_cmd.ang) > std::numeric_limits<double>::epsilon())
+        {
+          front_left_steering = copysign(M_PI_2, curr_cmd.ang);
+          front_right_steering = copysign(M_PI_2, curr_cmd.ang);
+        }
+        else
+        {
+          front_left_steering = 0.0;
+          front_right_steering = 0.0;
+        }
       }
     }
     else

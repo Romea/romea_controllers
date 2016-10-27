@@ -35,7 +35,7 @@ public:
       hardware_interface::JointStateHandle state_handle(velocity_joints_name[i], &joints_[i].position, &joints_[i].velocity, &joints_[i].effort);
       jnt_state_interface_.registerHandle(state_handle);
 
-      hardware_interface::JointHandle vel_handle(jnt_state_interface_.getHandle(velocity_joints_name[i]), &joints_[i].velocity_command);
+      hardware_interface::JointHandle vel_handle(state_handle, &joints_[i].velocity_command);
       jnt_vel_interface_.registerHandle(vel_handle);
     }
 
@@ -46,7 +46,7 @@ public:
       hardware_interface::JointStateHandle state_handle(position_joints_name[i], &steering_joints_[i].position, &steering_joints_[i].velocity, &steering_joints_[i].effort);
       jnt_state_interface_.registerHandle(state_handle);
 
-      hardware_interface::JointHandle pos_handle(jnt_state_interface_.getHandle(position_joints_name[i]), &steering_joints_[i].position_command);
+      hardware_interface::JointHandle pos_handle(state_handle, &steering_joints_[i].position_command);
       jnt_pos_interface_.registerHandle(pos_handle);
     }
 
@@ -67,13 +67,13 @@ public:
     }
     os << joints_[3].velocity_command;
 
-    ROS_INFO_STREAM("Commands for joints: " << os.str());
+    ROS_DEBUG_STREAM("Commands for joints: " << os.str());
 
-    os.clear();
+    os.str("");
     os << steering_joints_[0].position_command << ", ";
     os << steering_joints_[1].position_command;
 
-    ROS_INFO_STREAM("Commands for steering joints: " << os.str());
+    ROS_DEBUG_STREAM("Commands for steering joints: " << os.str());
   }
 
   void write()
@@ -90,9 +90,6 @@ public:
       }
       for (unsigned int i = 0; i < 2; ++i)
       {
-        // Note that joints_[i].position will be NaN for one more cycle after we start(),
-        // but that is consistent with the knowledge we have about the state
-        // of the robot.
         steering_joints_[i].position = steering_joints_[i].position_command; // might add smoothing here later
       }
     }

@@ -1,11 +1,11 @@
 <launch>
   <!-- Load common test stuff -->
-  <include file="$(find ackermann_controller)/test/ackermann_common.launch" />
+  <include file="$(find ackermann_controller)/test/launch/ackermann_common.launch" />
 
   <!-- Controller test -->
-  <test test-name="ackermann_test"
+  <test test-name="ackermann_controller_test"
         pkg="ackermann_controller"
-        type="ackermann_test"
+        type="ackermann_controller_test"
         time-limit="80.0">
     <remap from="cmd_vel" to="ackermann_controller/cmd_vel" />
     <remap from="odom" to="ackermann_controller/odom" />

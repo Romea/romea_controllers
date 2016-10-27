@@ -48,7 +48,7 @@ namespace ackermann_controller
     /// Integrate odometry:
     integrateExact(wheel_est_vel, angular);
 
-    linear_ = (rear_wheel_angular_vel*rear_wheel_radius_)/2.0;
+    linear_ = rear_wheel_angular_vel*rear_wheel_radius_;
     angular_ = linear_ * tan(front_steering) / wheel_base_;
 
     return true;

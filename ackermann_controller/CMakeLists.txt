@@ -44,12 +44,17 @@ install(FILES ackermann_controller_plugins.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 if(CATKIN_ENABLE_TESTING)
-  find_package(catkin REQUIRED COMPONENTS rostest controller_manager)
+  find_package(catkin REQUIRED COMPONENTS rostest std_srvs controller_manager tf)
 
   add_executable(ackermann test/src/ackermann.cpp)
   target_link_libraries(ackermann ${catkin_LIBRARIES})
 
   add_dependencies(tests ackermann)
+
+  add_rostest_gtest(ackermann_controller_test
+                    test/ackermann_controller.test
+                    test/src/ackermann_test.cpp)
+  target_link_libraries(ackermann_controller_test ${catkin_LIBRARIES})
 
   add_rostest_gtest(ackermann_wrong_config_test
                     test/ackermann_wrong_config.test

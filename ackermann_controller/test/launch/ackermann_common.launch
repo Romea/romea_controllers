@@ -14,7 +14,7 @@
   <!-- Spawn controller -->
   <node name="controller_spawner"
         pkg="controller_manager" type="spawner" output="screen"
-        args="ackermann_controller" />
+        args="ackermann_controller --shutdown-timeout 5" />
 
   <!-- rqt_plot monitoring -->
 
