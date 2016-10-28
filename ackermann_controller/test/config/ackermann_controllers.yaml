@@ -1,3 +1,6 @@
+robot_joint_publisher:
+  type: "joint_state_controller/JointStateController"
+  publish_rate: 50
 ackermann_controller:
   type: "ackermann_controller/AckermannController"
   front_wheel: ['front_left_wheel', 'front_right_wheel']

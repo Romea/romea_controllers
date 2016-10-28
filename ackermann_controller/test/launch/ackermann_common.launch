@@ -6,7 +6,7 @@
   <!-- Start ackermann -->
   <node name="ackermann"
       pkg="ackermann_controller"
-      type="ackermann"/>
+      type="ackermann" output="screen"/>
 
   <!-- Load controller config -->
   <rosparam command="load" file="$(find ackermann_controller)/test/config/ackermann_controllers.yaml" />
@@ -27,5 +27,7 @@
         pkg="rqt_plot"
         type="rqt_plot"
         args="/ackermann_controller/odom/twist/twist/linear/x" />-->
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ackermann_controller)/test/config/view_odom.rviz"/>
 
 </launch>

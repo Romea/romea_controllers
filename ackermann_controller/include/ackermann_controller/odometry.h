@@ -43,10 +43,13 @@ namespace ackermann_controller
      * \param front_wheel_angular_vel  Front  wheel angular speed [rad/s]
      * \param rear_wheel_angular_pos Rear wheel position [rad]
      * \param rear_wheel_angular_vel Rear wheel angular speed [rad/s]
+     * \param front_steering position [rad]
+     * \param time ROS time
      * \return true if the odometry is actually updated
      */
     bool update(double front_wheel_angular_pos, double front_wheel_angular_vel,
-                double rear_wheel_angular_pos, double rear_wheel_angular_vel, double front_steering);
+                double rear_wheel_angular_pos, double rear_wheel_angular_vel,
+                double front_steering, const ros::Time &time);
 
     /**
      * \brief Updates the odometry class with latest velocity command
@@ -142,7 +145,7 @@ namespace ackermann_controller
     void resetAccumulators();
 
     /// Current timestamp:
-    ros::Time timestamp_;
+    ros::Time timestamp_, last_update_timestamp_;
 
     /// Current pose:
     double x_;        //   [m]

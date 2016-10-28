@@ -8,6 +8,7 @@ namespace ackermann_controller
 
   Odometry::Odometry(size_t velocity_rolling_window_size)
   : timestamp_(0.0)
+  , last_update_timestamp_(0.0)
   , x_(0.0)
   , y_(0.0)
   , heading_(0.0)
@@ -31,25 +32,32 @@ namespace ackermann_controller
     // Reset accumulators and timestamp:
     resetAccumulators();
     timestamp_ = time;
+    last_update_timestamp_ = time;
   }
 
   bool Odometry::update(double front_wheel_angular_pos, double front_wheel_angular_vel,
-                        double rear_wheel_angular_pos, double rear_wheel_angular_vel, double front_steering)
+                        double rear_wheel_angular_pos, double rear_wheel_angular_vel,
+                        double front_steering, const ros::Time &time)
   {
     /// Get current wheel joint positions:
-    const double wheel_cur_pos  = (front_wheel_angular_pos * front_wheel_radius_ +
-                                   rear_wheel_angular_pos * rear_wheel_radius_)/2.0;
-    /// Estimate velocity of wheels using old and current position:
-    const double wheel_est_vel  = wheel_cur_pos  - wheel_old_pos_;
+    const double wheel_cur_pos  = rear_wheel_angular_pos * rear_wheel_radius_;
+    /// Estimate pos evolution of wheels using old and current position:
+    const double wheel_est_diff_pos  = wheel_cur_pos  - wheel_old_pos_;
     /// Update old position with current:
     wheel_old_pos_ = wheel_cur_pos;
 
-    const double angular = wheel_est_vel * tan(front_steering) / wheel_base_;
+    const double angular_diff = wheel_est_diff_pos * tan(front_steering) / wheel_base_;
     /// Integrate odometry:
-    integrateExact(wheel_est_vel, angular);
+    integrateExact(wheel_est_diff_pos, angular_diff);
 
     linear_ = rear_wheel_angular_vel*rear_wheel_radius_;
     angular_ = linear_ * tan(front_steering) / wheel_base_;
+
+    /// Compute x, y and heading using velocity
+//    const double dt = (time - last_update_timestamp_).toSec();
+//    last_update_timestamp_ = time;
+//    /// Integrate odometry:
+//    integrateExact(linear_*dt, angular_*dt);
 
     return true;
   }
@@ -99,7 +107,9 @@ namespace ackermann_controller
   void Odometry::integrateExact(double linear, double angular)
   {
     if (fabs(angular) < 1e-6)
+    {
       integrateRungeKutta2(linear, angular);
+    }
     else
     {
       /// Exact integration (should solve problems when angular is zero):

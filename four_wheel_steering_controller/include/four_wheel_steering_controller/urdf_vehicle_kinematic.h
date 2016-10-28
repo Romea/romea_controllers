@@ -41,6 +41,14 @@ public:
   bool getJointRadius(const std::string& joint_name,
                                 double& radius);
 
+  /**
+   * \brief Get joint steering limit from the URDF
+   *        considering the upper and lower limit is the same
+   * \param joint_name Name of the joint
+   * \param steering_limit [rad]
+   */
+  bool getJointSteeringLimits(const std::string& joint_name,
+                              double& steering_limit);
 private:
   std::string base_link_;
 

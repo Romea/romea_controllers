@@ -149,4 +149,25 @@ namespace four_wheel_steering_controller{
       return false;
   }
 
+  bool UrdfVehicleKinematic::getJointSteeringLimits(const std::string& joint_name,
+                              double& steering_limit)
+  {
+    if(model_)
+    {
+      boost::shared_ptr<const urdf::Joint> joint(model_->getJoint(joint_name));
+      if(joint->type == urdf::Joint::REVOLUTE)
+      {
+        const double lower_steering_limit = fabs(joint->limits->lower);
+        const double upper_steering_limit = fabs(joint->limits->upper);
+        if(lower_steering_limit > upper_steering_limit)
+          steering_limit = upper_steering_limit;
+        else
+          steering_limit = lower_steering_limit;
+        ROS_INFO_STREAM("Joint "<<joint_name<<" steering limit is "<<steering_limit*180.0/M_PI<<" in degrees");
+        return true;
+      }
+      ROS_ERROR_STREAM("Couldn't get joint "<<joint_name<<" steering limit, is it of type REVOLUTE ?");
+    }
+    return false;
+  }
 }

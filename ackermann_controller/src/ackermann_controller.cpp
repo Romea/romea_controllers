@@ -19,6 +19,7 @@ namespace ackermann_controller{
     , track_(0.0)
     , front_wheel_radius_(0.0)
     , rear_wheel_radius_(0.0)
+    , steering_limit_(0.0)
     , wheel_base_(0.0)
     , cmd_vel_timeout_(0.5)
     , base_frame_id_("base_link")
@@ -212,6 +213,13 @@ namespace ackermann_controller{
         controller_nh.setParam("wheel_base",wheel_base_);
     }
 
+    if(!uvk.getJointSteeringLimits(front_steering_names[0], steering_limit_))
+      return false;
+    else
+    {
+      controller_nh.setParam("steering_limit",steering_limit_);
+    }
+
     // Regardless of how we got the separation and radius, use them
     // to set the odometry parameters
     const double ws = track_;
@@ -293,9 +301,8 @@ namespace ackermann_controller{
       }
       double front_steering_pos = atan2(2, 1/tan(front_left_steering_pos) + 1/tan(front_right_steering_pos));
 
-      ROS_DEBUG_STREAM("front_vel "<<front_vel<<" front_steering_pos "<<front_steering_pos);
       // Estimate linear and angular velocity using joint information
-      odometry_.update(front_pos, front_vel, rear_pos, rear_vel, front_steering_pos);
+      odometry_.update(front_pos, front_vel, rear_pos, rear_vel, front_steering_pos, time);
     }
 
     // Publish odometry message
@@ -393,8 +400,9 @@ namespace ackermann_controller{
       {
         if(fabs(curr_cmd.ang) > std::numeric_limits<double>::epsilon())
         {
-          front_left_steering = copysign(M_PI_2, curr_cmd.ang);
-          front_right_steering = copysign(M_PI_2, curr_cmd.ang);
+          // TODO CIR is not converging, do not put left and right to the same limit
+          front_left_steering = copysign(steering_limit_, curr_cmd.ang*odometry_.getLinear());
+          front_right_steering = copysign(steering_limit_, curr_cmd.ang*odometry_.getLinear());
         }
         else
         {

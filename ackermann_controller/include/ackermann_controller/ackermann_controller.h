@@ -114,6 +114,9 @@ namespace ackermann_controller{
     /// Wheel radius (assuming it's the same for the left and right wheels):
     double front_wheel_radius_, rear_wheel_radius_;
 
+    /// Joint steering limits (assuming the limit is the same for the left and right joint)
+    double steering_limit_;
+
     /// Wheel base (distance between front and rear wheel):
     double wheel_base_;
 
