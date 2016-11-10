@@ -9,9 +9,10 @@ build:
   # instead of calling g++ directly you can also use some build toolkit like make
   # install the necessary build tools when needed
   before_script: 
-    - git clone git@gitlab.bordeaux.cemagref.fr:vincent.rousseau/ros_gitlab_ci.git
+    - wget https://gitlab.bordeaux.cemagref.fr/vincent.rousseau/ros_gitlab_ci/raw/master/gitlab_ci.sh?private_token=CWQFve-Q99gAky8ZaJxe --no-check-certificate -O gitlab_ci.sh
+    - pwd
   script: 
-    - ./ros_gitlab_ci/gitlab_ci.sh
+    - ./gitlab_ci.sh
   # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
   # cache:
   #   paths:
