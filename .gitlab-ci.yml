@@ -11,6 +11,7 @@ build:
   before_script: 
     - apt update && apt -y install wget
     - wget https://gitlab.bordeaux.cemagref.fr/vincent.rousseau/ros_gitlab_ci/raw/master/gitlab_ci.sh?private_token=CWQFve-Q99gAky8ZaJxe --no-check-certificate -O gitlab_ci.sh
+    - chmod a+x gitlab_ci.sh
     - pwd
   script: 
     - ./gitlab_ci.sh
