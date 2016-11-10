@@ -28,6 +28,6 @@
         type="rqt_plot"
         args="/ackermann_controller/odom/twist/twist/linear/x" />-->
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ackermann_controller)/test/config/view_odom.rviz"/>
+  <!--<node name="rviz" pkg="rviz" type="rviz" args="-d $(find ackermann_controller)/test/config/view_odom.rviz"/>-->
 
 </launch>
