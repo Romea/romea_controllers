@@ -9,6 +9,7 @@ build:
   # instead of calling g++ directly you can also use some build toolkit like make
   # install the necessary build tools when needed
   before_script: 
+    - apt update && apt -y install wget
     - wget https://gitlab.bordeaux.cemagref.fr/vincent.rousseau/ros_gitlab_ci/raw/master/gitlab_ci.sh?private_token=CWQFve-Q99gAky8ZaJxe --no-check-certificate -O gitlab_ci.sh
     - pwd
   script: 
