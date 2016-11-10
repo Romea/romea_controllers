@@ -1,0 +1,24 @@
+# This file is a template, and might need editing before it works on your project.
+# use the official gcc image, based on debian
+# can use verions as well, like gcc:5.2
+# see https://hub.docker.com/_/gcc/
+image: ros:indigo-robot
+
+build:
+  stage: build
+  # instead of calling g++ directly you can also use some build toolkit like make
+  # install the necessary build tools when needed
+  before_script: 
+    - git clone git@gitlab.bordeaux.cemagref.fr:vincent.rousseau/ros_gitlab_ci.git
+  script: 
+    - ./ros_gitlab_ci/gitlab_ci.sh
+  # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
+  # cache:
+  #   paths:
+  #     - "*.o"
+
+# run tests using the binary built before
+#test:
+#  stage: test
+#  script:
+#    - ./runmytests.sh
