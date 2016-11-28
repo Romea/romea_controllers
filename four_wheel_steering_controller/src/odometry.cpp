@@ -31,21 +31,26 @@ namespace four_wheel_steering_controller
   }
 
 
-  bool Odometry::update(double wheel_angular_pos, double wheel_angular_vel, double front_steering, double rear_steering, const ros::Time &time)
+  bool Odometry::update(const double &fl_speed, const double &fr_speed,
+                        const double &rl_speed, const double &rr_speed,
+                        double front_steering, double rear_steering, const ros::Time &time)
   {
-    /// Get current wheel joint positions:
-    const double wheel_cur_pos  = wheel_angular_pos  * wheel_radius_;
-    /// Estimate velocity of wheels using old and current position:
-    const double wheel_est_vel  = wheel_cur_pos  - wheel_old_pos_;
-    /// Update old position with current:
-    wheel_old_pos_  = wheel_cur_pos;
+    const double tmp = cos(rear_steering)*(tan(front_steering)-tan(rear_steering))/wheel_base_;
+    const double rear_linear_speed = sqrt((pow(rl_speed,2)+pow(rr_speed,2))/(2+pow(track_*tmp,2)/2.0));
 
-    const double angular = wheel_est_vel * tan(front_steering) / wheel_base_;
-    /// Integrate odometry:
-    integrateExact(wheel_est_vel, angular);
+    angular_ = rear_linear_speed*tmp;
 
-    linear_ = wheel_angular_vel*wheel_radius_;
+    const double base_link_linear_speed_x = rear_linear_speed*cos(rear_steering);
+    const double base_link_linear_speed_y = rear_linear_speed*sin(rear_steering) + wheel_base_*angular_/2.0;
+
+    linear_ = rear_wheel_angular_vel*rear_wheel_radius_;
     angular_ = linear_ * tan(front_steering) / wheel_base_;
+
+    /// Compute x, y and heading using velocity
+    const double dt = (time - last_update_timestamp_).toSec();
+    last_update_timestamp_ = time;
+    /// Integrate odometry:
+    integrateExact(linear_*dt, angular_*dt);
 
     return true;
   }

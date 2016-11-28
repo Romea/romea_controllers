@@ -39,14 +39,17 @@ namespace four_wheel_steering_controller
 
     /**
      * \brief Updates the odometry class with latest wheels and steerings position
-     * \param wheel_angular_pos  vehicle wheel position [rad]
-     * \param wheel_angular_vel vehicle speed [rad/s]
+     * \param fl_speed front left wheel vehicle speed [rad/s]
+     * \param fr_speed front right wheel vehicle speed [rad/s]
+     * \param rl_speed rear left wheel vehicle speed [rad/s]
+     * \param rr_speed rear right wheel vehicle speed [rad/s]
      * \param front_steering  steering position [rad]
      * \param rear_steering  steering position [rad]
      * \param time      Current time
      * \return true if the odometry is actually updated
      */
-    bool update(double wheel_angular_pos, double wheel_angular_vel, double front_steering, double rear_steering, const ros::Time &time);
+    bool update(const double& fl_speed, const double& fr_speed, const double& rl_speed, const double& rr_speed,
+                double front_steering, double rear_steering, const ros::Time &time);
 
     /**
      * \brief Updates the odometry class with latest velocity command

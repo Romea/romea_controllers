@@ -253,46 +253,30 @@ namespace four_wheel_steering_controller{
     }
     else
     {
-      double front_pos  = 0.0;
-      double rear_pos = 0.0;
-      double front_vel  = 0.0;
-      double rear_vel = 0.0;
-      for (size_t i = 0; i < front_wheel_joints_.size(); ++i)
-      {
-        const double fp = front_wheel_joints_[i].getPosition();
-        const double rp = rear_wheel_joints_[i].getPosition();
-        if (std::isnan(fp) || std::isnan(rp))
-          return;
-        front_pos  += fp;
-        rear_pos += rp;
+      const double fl_speed = front_wheel_joints_[0].getVelocity();
+      const double fr_speed = front_wheel_joints_[1].getVelocity();
+      const double rl_speed = rear_wheel_joints_[0].getVelocity();
+      const double rr_speed = rear_wheel_joints_[1].getVelocity();
+      if (std::isnan(fl_speed) || std::isnan(fr_speed)
+          || std::isnan(rl_speed) || std::isnan(rr_speed))
+        return;
 
-        const double ls = front_wheel_joints_[i].getVelocity();
-        const double rs = rear_wheel_joints_[i].getVelocity();
-        if (std::isnan(ls) || std::isnan(rs))
-          return;
-        front_vel  += ls;
-        rear_vel += rs;
-      }
-      front_pos  /= front_wheel_joints_.size();
-      rear_pos /= front_wheel_joints_.size();
-      front_vel  /= front_wheel_joints_.size();
-      rear_vel /= front_wheel_joints_.size();
-      double wheel_angular_pos = (front_pos + rear_pos)/2.0;
-      double wheel_angular_vel = (front_vel + rear_vel)/2.0;
-
-      double front_steering_pos = 0.0;
-      double rear_steering_pos = 0.0;
-      for (size_t i = 0; i < front_steering_joints_.size(); ++i)
-      {
-        front_steering_pos += front_steering_joints_[i].getPosition();
-        rear_steering_pos += rear_steering_joints_[i].getPosition();
-      }
-      front_steering_pos /= front_steering_joints_.size();
-      rear_steering_pos /= front_steering_joints_.size();
+      const double fl_steering = front_steering_joints_[0].getPosition();
+      const double fr_steering = front_steering_joints_[1].getPosition();
+      const double rl_steering = rear_steering_joints_[0].getPosition();
+      const double rr_steering = rear_steering_joints_[1].getPosition();
+      if (std::isnan(fl_steering) || std::isnan(fr_steering)
+          || std::isnan(rl_steering) || std::isnan(rr_steering))
+        return;
+      double front_steering_pos = atan2(2, 1/tan(fl_steering)
+                                          + 1/tan(fr_steering));
+      double rear_steering_pos = atan2(2, 1/tan(rl_steering)
+                                          + 1/tan(rr_steering));
 
       ROS_DEBUG_STREAM("wheel_angular_vel "<<wheel_angular_vel<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
       // Estimate linear and angular velocity using joint information
-      odometry_.update(wheel_angular_pos, wheel_angular_vel, front_steering_pos, rear_steering_pos, time);
+      odometry_.update(fl_speed, fr_speed, rl_speed, rr_speed,
+                       front_steering_pos, rear_steering_pos, time);
     }
 
     // Publish odometry message
