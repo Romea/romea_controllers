@@ -11,7 +11,8 @@ namespace four_wheel_steering_controller
   , x_(0.0)
   , y_(0.0)
   , heading_(0.0)
-  , linear_(0.0)
+  , linear_x_(0.0)
+  , linear_y_(0.0)
   , angular_(0.0)
   , track_(0.0)
   , wheel_radius_(0.0)
@@ -36,21 +37,20 @@ namespace four_wheel_steering_controller
                         double front_steering, double rear_steering, const ros::Time &time)
   {
     const double tmp = cos(rear_steering)*(tan(front_steering)-tan(rear_steering))/wheel_base_;
-    const double rear_linear_speed = sqrt((pow(rl_speed,2)+pow(rr_speed,2))/(2+pow(track_*tmp,2)/2.0));
+    const double rear_linear_speed = wheel_radius_ * sqrt((pow(rl_speed,2)+pow(rr_speed,2))/(2+pow(track_*tmp,2)/2.0));
 
     angular_ = rear_linear_speed*tmp;
 
-    const double base_link_linear_speed_x = rear_linear_speed*cos(rear_steering);
-    const double base_link_linear_speed_y = rear_linear_speed*sin(rear_steering) + wheel_base_*angular_/2.0;
-
-    linear_ = rear_wheel_angular_vel*rear_wheel_radius_;
+    linear_x_ = rear_linear_speed*cos(rear_steering);
+    linear_y_ = rear_linear_speed*sin(rear_steering) + wheel_base_*angular_/2.0;
     angular_ = linear_ * tan(front_steering) / wheel_base_;
 
     /// Compute x, y and heading using velocity
     const double dt = (time - last_update_timestamp_).toSec();
     last_update_timestamp_ = time;
     /// Integrate odometry:
-    integrateExact(linear_*dt, angular_*dt);
+    const double linear = sqrt(pow(linear_x_,2)+pow(linear_y_,2));
+    integrateExact(linear*dt, angular_*dt);
 
     return true;
   }

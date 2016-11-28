@@ -87,12 +87,21 @@ namespace four_wheel_steering_controller
     }
 
     /**
-     * \brief linear velocity getter
+     * \brief linear velocity getter along X on the robot base link frame
      * \return linear velocity [m/s]
      */
-    double getLinear() const
+    double getLinearX() const
     {
-      return linear_;
+      return linear_x_;
+    }
+
+    /**
+     * \brief linear velocity getter along Y on the robot base link frame
+     * \return linear velocity [m/s]
+     */
+    double getLinearY() const
+    {
+      return linear_y_;
     }
 
     /**
@@ -152,7 +161,7 @@ namespace four_wheel_steering_controller
     double heading_;  // [rad]
 
     /// Current velocity:
-    double linear_;  //   [m/s]
+    double linear_x_, linear_y_;  //   [m/s]
     double angular_; // [rad/s]
 
     /// Wheel kinematic parameters [m]:
