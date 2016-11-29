@@ -273,7 +273,7 @@ namespace four_wheel_steering_controller{
       double rear_steering_pos = atan2(2, 1/tan(rl_steering)
                                           + 1/tan(rr_steering));
 
-      ROS_DEBUG_STREAM("wheel_angular_vel "<<wheel_angular_vel<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
+      ROS_DEBUG_STREAM("rl_speed "<<rl_speed<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
       // Estimate linear and angular velocity using joint information
       odometry_.update(fl_speed, fr_speed, rl_speed, rr_speed,
                        front_steering_pos, rear_steering_pos, time);
@@ -294,7 +294,8 @@ namespace four_wheel_steering_controller{
         odom_pub_->msg_.pose.pose.position.x = odometry_.getX();
         odom_pub_->msg_.pose.pose.position.y = odometry_.getY();
         odom_pub_->msg_.pose.pose.orientation = orientation;
-        odom_pub_->msg_.twist.twist.linear.x  = odometry_.getLinear();
+        odom_pub_->msg_.twist.twist.linear.x  = odometry_.getLinearX();
+        odom_pub_->msg_.twist.twist.linear.y  = odometry_.getLinearY();
         odom_pub_->msg_.twist.twist.angular.z = odometry_.getAngular();
         odom_pub_->unlockAndPublish();
       }

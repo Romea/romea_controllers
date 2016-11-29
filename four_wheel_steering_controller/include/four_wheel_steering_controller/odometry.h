@@ -86,6 +86,16 @@ namespace four_wheel_steering_controller
       return y_;
     }
 
+
+    /**
+     * \brief linear velocity getter norm
+     * \return linear velocity [m/s]
+     */
+    double getLinear() const
+    {
+      return linear_;
+    }
+
     /**
      * \brief linear velocity getter along X on the robot base link frame
      * \return linear velocity [m/s]
@@ -134,6 +144,14 @@ namespace four_wheel_steering_controller
     typedef bacc::tag::rolling_window RollingWindow;
 
     /**
+     * \brief Integrates the velocities (linear on x and y and angular)
+     * \param linear_x  Linear  velocity along x of the robot frame  [m] (linear  displacement, i.e. m/s * dt) computed by encoders
+     * \param linear_y  Linear  velocity along y of the robot frame   [m] (linear  displacement, i.e. m/s * dt) computed by encoders
+     * \param angular Angular velocity [rad] (angular displacement, i.e. m/s * dt) computed by encoders
+     */
+    void integrateXY(double linear_x, double linear_y, double angular);
+
+    /**
      * \brief Integrates the velocities (linear and angular) using 2nd order Runge-Kutta
      * \param linear  Linear  velocity   [m] (linear  displacement, i.e. m/s * dt) computed by encoders
      * \param angular Angular velocity [rad] (angular displacement, i.e. m/s * dt) computed by encoders
@@ -153,7 +171,7 @@ namespace four_wheel_steering_controller
     void resetAccumulators();
 
     /// Current timestamp:
-    ros::Time timestamp_;
+    ros::Time timestamp_, last_update_timestamp_;
 
     /// Current pose:
     double x_;        //   [m]
@@ -161,7 +179,7 @@ namespace four_wheel_steering_controller
     double heading_;  // [rad]
 
     /// Current velocity:
-    double linear_x_, linear_y_;  //   [m/s]
+    double linear_, linear_x_, linear_y_;  //   [m/s]
     double angular_; // [rad/s]
 
     /// Wheel kinematic parameters [m]:

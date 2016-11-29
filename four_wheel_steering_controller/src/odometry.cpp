@@ -8,9 +8,11 @@ namespace four_wheel_steering_controller
 
   Odometry::Odometry(size_t velocity_rolling_window_size)
   : timestamp_(0.0)
+  , last_update_timestamp_(0.0)
   , x_(0.0)
   , y_(0.0)
   , heading_(0.0)
+  , linear_(0.0)
   , linear_x_(0.0)
   , linear_y_(0.0)
   , angular_(0.0)
@@ -43,14 +45,13 @@ namespace four_wheel_steering_controller
 
     linear_x_ = rear_linear_speed*cos(rear_steering);
     linear_y_ = rear_linear_speed*sin(rear_steering) + wheel_base_*angular_/2.0;
-    angular_ = linear_ * tan(front_steering) / wheel_base_;
+    linear_ = sqrt(pow(linear_x_,2)+pow(linear_y_,2));
 
     /// Compute x, y and heading using velocity
     const double dt = (time - last_update_timestamp_).toSec();
     last_update_timestamp_ = time;
     /// Integrate odometry:
-    const double linear = sqrt(pow(linear_x_,2)+pow(linear_y_,2));
-    integrateExact(linear*dt, angular_*dt);
+    integrateXY(linear_x_*dt, linear_y_*dt, angular_*dt);
 
     return true;
   }
@@ -81,6 +82,16 @@ namespace four_wheel_steering_controller
     resetAccumulators();
   }
 
+  void Odometry::integrateXY(double linear_x, double linear_y, double angular)
+  {
+    const double delta_x = linear_x*cos(heading_) - linear_y*sin(heading_);
+    const double delta_y = linear_x*sin(heading_) + linear_y*cos(heading_);
+
+    x_ += delta_x;
+    y_ += delta_y;
+    heading_ += angular;
+  }
+
   void Odometry::integrateRungeKutta2(double linear, double angular)
   {
     const double direction = heading_ + angular * 0.5;
@@ -91,11 +102,6 @@ namespace four_wheel_steering_controller
     heading_ += angular;
   }
 
-  /**
-   * \brief Other possible integration method provided by the class
-   * \param linear
-   * \param angular
-   */
   void Odometry::integrateExact(double linear, double angular)
   {
     if (fabs(angular) < 1e-6)
