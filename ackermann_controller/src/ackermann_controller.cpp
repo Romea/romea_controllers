@@ -6,7 +6,7 @@
 
 #include <boost/assign.hpp>
 
-#include <four_wheel_steering_controller/urdf_vehicle_kinematic.h>
+#include <urdf_vehicle_kinematic/urdf_vehicle_kinematic.h>
 
 #include <ackermann_controller/ackermann_controller.h>
 
@@ -183,7 +183,7 @@ namespace ackermann_controller{
     bool lookup_rear_wheel_radius = !controller_nh.getParam("rear_wheel_radius", rear_wheel_radius_);
     bool lookup_wheel_base = !controller_nh.getParam("wheel_base", wheel_base_);
 
-    four_wheel_steering_controller::UrdfVehicleKinematic uvk(root_nh, base_frame_id_);
+    urdf_vehicle_kinematic::UrdfVehicleKinematic uvk(root_nh, base_frame_id_);
     if(lookup_track)
     {
       if(!uvk.getDistanceBetweenJoints(front_wheel_names[0], front_wheel_names[1], track_))

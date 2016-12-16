@@ -13,8 +13,7 @@ set(${PROJECT_NAME}_CATKIN_DEPS
     ackermann_msgs
     realtime_tools
     tf
-    urdf
-    four_wheel_steering_controller)
+    urdf_vehicle_kinematic)
 
 find_package(catkin REQUIRED COMPONENTS ${${PROJECT_NAME}_CATKIN_DEPS})
 

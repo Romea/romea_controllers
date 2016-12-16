@@ -5,7 +5,7 @@
 
 #include <urdf_parser/urdf_parser.h>
 
-namespace four_wheel_steering_controller {
+namespace urdf_vehicle_kinematic {
 
 class UrdfVehicleKinematic {
 

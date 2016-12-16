@@ -1,5 +1,5 @@
 
-#include <four_wheel_steering_controller/urdf_vehicle_kinematic.h>
+#include <urdf_vehicle_kinematic/urdf_vehicle_kinematic.h>
 
 static double euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
 {
@@ -60,7 +60,7 @@ static bool getWheelRadius(const boost::shared_ptr<const urdf::Link>& wheel_link
   return true;
 }
 
-namespace four_wheel_steering_controller{
+namespace urdf_vehicle_kinematic{
   UrdfVehicleKinematic::UrdfVehicleKinematic(ros::NodeHandle& root_nh, const std::string& base_link):
     base_link_(base_link)
   {
