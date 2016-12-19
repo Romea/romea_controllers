@@ -18,18 +18,18 @@
 // ostringstream
 #include <sstream>
 
-class Ackermann : public hardware_interface::RobotHW
+class FourWheelSteering : public hardware_interface::RobotHW
 {
 public:
-  Ackermann()
+  FourWheelSteering()
   : running_(true)
-  , start_srv_(nh_.advertiseService("start", &Ackermann::start_callback, this))
-  , stop_srv_(nh_.advertiseService("stop", &Ackermann::stop_callback, this))
+  , start_srv_(nh_.advertiseService("start", &FourWheelSteering::start_callback, this))
+  , stop_srv_(nh_.advertiseService("stop", &FourWheelSteering::stop_callback, this))
   {
     std::vector<std::string> velocity_joints_name = {"front_left_wheel", "front_right_wheel",
                                                      "rear_left_wheel", "rear_right_wheel"};
     // Connect and register the joint state and velocity interface
-    for (unsigned int i = 0; i < 4; ++i)
+    for (unsigned int i = 0; i < velocity_joints_name.size(); ++i)
     {
 
       hardware_interface::JointStateHandle state_handle(velocity_joints_name[i], &joints_[i].position, &joints_[i].velocity, &joints_[i].effort);
@@ -39,9 +39,10 @@ public:
       jnt_vel_interface_.registerHandle(vel_handle);
     }
 
-    std::vector<std::string> position_joints_name = {"front_left_steering_joint", "front_right_steering_joint"};
+    std::vector<std::string> position_joints_name = {"front_left_steering_joint", "front_right_steering_joint",
+                                                     "rear_left_steering_joint", "rear_right_steering_joint"};
     // Connect and register the joint state and position interface
-    for (unsigned int i = 0; i < 2; ++i)
+    for (unsigned int i = 0; i < position_joints_name.size(); ++i)
     {
       hardware_interface::JointStateHandle state_handle(position_joints_name[i], &steering_joints_[i].position, &steering_joints_[i].velocity, &steering_joints_[i].effort);
       jnt_state_interface_.registerHandle(state_handle);
@@ -70,9 +71,11 @@ public:
     ROS_DEBUG_STREAM("Commands for joints: " << os.str());
 
     os.str("");
-    os << steering_joints_[0].position_command << ", ";
-    os << steering_joints_[1].position_command;
-
+    for (unsigned int i = 0; i < 3; ++i)
+    {
+      os << steering_joints_[i].position_command << ", ";
+    }
+    os << steering_joints_[3].position_command;
     ROS_DEBUG_STREAM("Commands for steering joints: " << os.str());
   }
 
@@ -88,7 +91,7 @@ public:
         joints_[i].position += joints_[i].velocity*getPeriod().toSec(); // update position
         joints_[i].velocity = joints_[i].velocity_command; // might add smoothing here later
       }
-      for (unsigned int i = 0; i < 2; ++i)
+      for (unsigned int i = 0; i < 4; ++i)
       {
         steering_joints_[i].position = steering_joints_[i].position_command; // might add smoothing here later
       }
@@ -100,7 +103,7 @@ public:
         joints_[i].position = std::numeric_limits<double>::quiet_NaN();
         joints_[i].velocity = std::numeric_limits<double>::quiet_NaN();
       }
-      for (unsigned int i = 0; i < 2; ++i)
+      for (unsigned int i = 0; i < 4; ++i)
       {
         steering_joints_[i].position = std::numeric_limits<double>::quiet_NaN();
         steering_joints_[i].velocity = std::numeric_limits<double>::quiet_NaN();
@@ -143,7 +146,7 @@ private:
     double position_command;
 
     SteeringJoint() : position(0), velocity(0), effort(0), position_command(0) { }
-  } steering_joints_[2];
+  } steering_joints_[4];
   bool running_;
 
   ros::NodeHandle nh_;

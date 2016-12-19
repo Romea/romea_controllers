@@ -13,7 +13,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "four_wheel_steering");
   ros::NodeHandle nh;
 
-  Ackermann robot;
+  FourWheelSteering robot;
   ROS_WARN_STREAM("period: " << robot.getPeriod().toSec());
   controller_manager::ControllerManager cm(&robot, nh);
 

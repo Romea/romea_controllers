@@ -2,7 +2,7 @@
 #include "test_common.h"
 
 // TEST CASES
-TEST_F(AckermannControllerTest, testWrongConfig)
+TEST_F(FourWheelSteeringControllerTest, testWrongConfig)
 {
   // The controller should be never alive
   int secs = 0;

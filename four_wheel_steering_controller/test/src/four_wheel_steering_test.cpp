@@ -2,7 +2,7 @@
 #include <tf/transform_listener.h>
 
 // TEST CASES
-TEST_F(AckermannControllerTest, testForward)
+TEST_F(FourWheelSteeringControllerTest, testForward)
 {
   // wait for ROS
   while(!isControllerAlive())
@@ -49,7 +49,7 @@ TEST_F(AckermannControllerTest, testForward)
   EXPECT_LT(fabs(new_odom.twist.twist.angular.z), EPS);
 }
 
-TEST_F(AckermannControllerTest, testTurn)
+TEST_F(FourWheelSteeringControllerTest, testTurn)
 {
   // wait for ROS
   while(!isControllerAlive())
@@ -98,7 +98,7 @@ TEST_F(AckermannControllerTest, testTurn)
   EXPECT_NEAR(fabs(new_odom.twist.twist.angular.z), cmd_vel.angular.z, EPS);
 }
 
-TEST_F(AckermannControllerTest, testOdomFrame)
+TEST_F(FourWheelSteeringControllerTest, testOdomFrame)
 {
   // wait for ROS
   while(!isControllerAlive())

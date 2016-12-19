@@ -47,19 +47,19 @@ const double JERK_LINEAR_VELOCITY_TOLERANCE = 0.10; // 10 cm-s-1 precision
 const double JERK_ANGULAR_VELOCITY_TOLERANCE = 0.05; // 3 deg-s-1 precision
 const double ORIENTATION_TOLERANCE = 0.03; // 0.57 degree precision
 
-class AckermannControllerTest : public ::testing::Test
+class FourWheelSteeringControllerTest : public ::testing::Test
 {
 public:
 
-  AckermannControllerTest()
+  FourWheelSteeringControllerTest()
   : cmd_pub(nh.advertise<geometry_msgs::Twist>("cmd_vel", 100))
-  , odom_sub(nh.subscribe("odom", 100, &AckermannControllerTest::odomCallback, this))
+  , odom_sub(nh.subscribe("odom", 100, &FourWheelSteeringControllerTest::odomCallback, this))
   , start_srv(nh.serviceClient<std_srvs::Empty>("start"))
   , stop_srv(nh.serviceClient<std_srvs::Empty>("stop"))
   {
   }
 
-  ~AckermannControllerTest()
+  ~FourWheelSteeringControllerTest()
   {
     odom_sub.shutdown();
   }
