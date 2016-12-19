@@ -40,3 +40,23 @@ catkin_install_python(PROGRAMS scripts/teleop_four_wheel_steering_joy.py
 install(FILES four_wheel_steering_controller_plugins.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
+if(CATKIN_ENABLE_TESTING)
+  find_package(catkin REQUIRED COMPONENTS rostest std_srvs controller_manager tf)
+
+  add_executable(four_wheel_steering test/src/four_wheel_steering.cpp)
+  target_link_libraries(four_wheel_steering ${catkin_LIBRARIES})
+
+  add_dependencies(tests four_wheel_steering)
+
+  add_rostest_gtest(four_wheel_steering_controller_test
+                    test/four_wheel_steering_controller.test
+                    test/src/four_wheel_steering_test.cpp)
+  target_link_libraries(four_wheel_steering_controller_test ${catkin_LIBRARIES})
+
+  add_rostest_gtest(four_wheel_steering_wrong_config_test
+                    test/four_wheel_steering_wrong_config.test
+                    test/src/four_wheel_steering_wrong_config.cpp)
+  target_link_libraries(four_wheel_steering_wrong_config_test ${catkin_LIBRARIES})
+  #add_rostest(test/four_wheel_steering_radius_param.test)
+
+endif()

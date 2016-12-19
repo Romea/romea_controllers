@@ -9,7 +9,7 @@
 
   <!-- load robot -->
   <param name="robot_description"
-         command="$(find xacro)/xacro.py '$(find four_wheel_steering_controller)/test/urdf/four_wheel_steering.urdf.xacro'" />
+         command="$(find xacro)/xacro --inorder '$(find four_wheel_steering_controller)/test/urdf/four_wheel_steering.urdf.xacro'" />
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 

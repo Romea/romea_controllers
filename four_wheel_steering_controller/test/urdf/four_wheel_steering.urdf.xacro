@@ -21,12 +21,12 @@
   <xacro:wheel_steered wheel_prefix="front_right" parent_link="base_link" wheel_origin_y="${-wheel_y_offset}" left_right="1">
     <origin xyz="${wheelbase/2+wheel_x_offset} ${-track/2+wheel_y_offset} ${-base_z_size/2 + wheel_radius - ground_clearance}" rpy="0 0 0" />
   </xacro:wheel_steered>
-  <xacro:wheel wheel_prefix="rear_left" parent_link="base_link" left_right="-1">
-    <origin xyz="${-wheelbase/2+wheel_x_offset} ${track/2} ${-base_z_size/2 + wheel_radius - ground_clearance}" rpy="0 0 0" />
-  </xacro:wheel>
-  <xacro:wheel wheel_prefix="rear_right" parent_link="base_link" left_right="1">
-    <origin xyz="${-wheelbase/2+wheel_x_offset} ${-track/2} ${-base_z_size/2 + wheel_radius - ground_clearance}" rpy="0 0 0" />
-  </xacro:wheel>
+  <xacro:wheel_steered wheel_prefix="rear_left" parent_link="base_link" wheel_origin_y="${wheel_y_offset}" left_right="-1">
+    <origin xyz="${-wheelbase/2+wheel_x_offset} ${track/2-wheel_y_offset} ${-base_z_size/2 + wheel_radius - ground_clearance}" rpy="0 0 0" />
+  </xacro:wheel_steered>
+  <xacro:wheel_steered wheel_prefix="rear_right" parent_link="base_link" wheel_origin_y="${-wheel_y_offset}" left_right="1">
+    <origin xyz="${-wheelbase/2+wheel_x_offset} ${-track/2+wheel_y_offset} ${-base_z_size/2 + wheel_radius - ground_clearance}" rpy="0 0 0" />
+  </xacro:wheel_steered>
 
   <!-- Gazebo plugin for ROS Control -->
   <gazebo>
