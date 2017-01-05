@@ -10,7 +10,8 @@ build:
   # install the necessary build tools when needed
   before_script: 
     - apt update && apt -y install wget
-    - wget https://gitlab.irstea.fr/vincent.rousseau/ros_gitlab_ci/raw/master/gitlab_ci.sh?private_token=tZeTnFNgBcVUfeJJNr1- --no-check-certificate -O gitlab_ci.sh
+    - echo $GITLAB_CI_TOKEN
+      #- wget https://gitlab.irstea.fr/vincent.rousseau/ros_gitlab_ci/raw/master/gitlab_ci.sh?private_token=tZeTnFNgBcVUfeJJNr1- --no-check-certificate -O gitlab_ci.sh
     - chmod a+x gitlab_ci.sh
     - pwd
   script: 
