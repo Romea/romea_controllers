@@ -273,7 +273,7 @@ namespace four_wheel_steering_controller{
       double rear_steering_pos = atan2(2, 1/tan(rl_steering)
                                           + 1/tan(rr_steering));
 
-      ROS_DEBUG_STREAM("rl_speed "<<rl_speed<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
+      ROS_DEBUG_STREAM_THROTTLE(10, "rl_speed "<<rl_speed<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
       // Estimate linear and angular velocity using joint information
       odometry_.update(fl_speed, fr_speed, rl_speed, rr_speed,
                        front_steering_pos, rear_steering_pos, time);
@@ -359,8 +359,8 @@ namespace four_wheel_steering_controller{
     if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {
       front_wheel_joints_[0].setCommand(vel_left_front);
-      rear_wheel_joints_[0].setCommand(vel_right_front);
-      front_wheel_joints_[1].setCommand(vel_left_rear);
+      front_wheel_joints_[1].setCommand(vel_right_front);
+      rear_wheel_joints_[0].setCommand(vel_left_rear);
       rear_wheel_joints_[1].setCommand(vel_right_rear);
     }
 
@@ -379,7 +379,7 @@ namespace four_wheel_steering_controller{
         rear_right_steering = -atan(curr_cmd.ang*wheel_base_ /
                                      (2.0*odometry_.getLinear() + curr_cmd.ang*track_));
       }
-      else
+      else if(fabs(curr_cmd.lin) > 0.0001)
       {
         front_left_steering = copysign(M_PI_2, curr_cmd.ang);
         front_right_steering = copysign(M_PI_2, curr_cmd.ang);
