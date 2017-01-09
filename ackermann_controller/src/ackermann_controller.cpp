@@ -369,6 +369,7 @@ namespace ackermann_controller{
 
     ROS_DEBUG_STREAM("angular_speed "<<angular_speed<<" curr_cmd.lin "<<curr_cmd.lin);
     // Compute wheels velocities:
+    // TODO should use angular cmd instead of angular odom and differenciate twist and ackermann cmd
     const double vel_left_front  = copysign(1.0, curr_cmd.lin) *
                                    sqrt((pow((curr_cmd.lin - angular_speed*track_/2),2)
                                          +pow(wheel_base_*angular_speed,2)))/front_wheel_radius_;
