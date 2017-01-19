@@ -2,8 +2,8 @@
 Changelog for package four_wheel_steering_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2017-01-19)
+------------------
 * [4ws] Only enable twist cmd
 * [4ws] Fix velocity cmd inversion
 * [4ws] Integrate position using x and y velocity

@@ -2,8 +2,8 @@
 Changelog for package ackermann_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2017-01-19)
+------------------
 * [4ws] Only enable twist cmd
 * remove test on radius param
 * Create the package urdf_vehicle_kinematic
