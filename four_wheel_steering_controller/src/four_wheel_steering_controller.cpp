@@ -364,6 +364,7 @@ namespace four_wheel_steering_controller{
                                                                           +pow(wheel_base_*curr_cmd.ang/2.0,2)))/wheel_radius_;
       }
 
+      // Compute steering angles
       if(fabs(2.0*curr_cmd.lin) > fabs(curr_cmd.ang*track_))
       {
         front_left_steering = atan(curr_cmd.ang*wheel_base_ /
