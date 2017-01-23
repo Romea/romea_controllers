@@ -14,7 +14,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
   <!-- Load controller config -->
-  <rosparam command="load" file="$(find four_wheel_steering_controller)/test/config/four_wheel_steering_controllers.yaml" />
+  <rosparam command="load" file="$(find four_wheel_steering_controller)/test/config/four_wheel_steering_controller_4ws_cmd.yaml" />
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="spawn_four_wheel_steering" pkg="gazebo_ros" type="spawn_model"

@@ -55,10 +55,14 @@ if(CATKIN_ENABLE_TESTING)
                     test/src/four_wheel_steering_test.cpp)
   target_link_libraries(four_wheel_steering_controller_test ${catkin_LIBRARIES})
 
+  add_rostest_gtest(four_wheel_steering_controller_4ws_cmd_test
+                    test/four_wheel_steering_controller_4ws_cmd.test
+                    test/src/four_wheel_steering_4ws_cmd_test.cpp)
+  target_link_libraries(four_wheel_steering_controller_4ws_cmd_test ${catkin_LIBRARIES})
+
   add_rostest_gtest(four_wheel_steering_wrong_config_test
                     test/four_wheel_steering_wrong_config.test
                     test/src/four_wheel_steering_wrong_config.cpp)
   target_link_libraries(four_wheel_steering_wrong_config_test ${catkin_LIBRARIES})
-  #add_rostest(test/four_wheel_steering_radius_param.test)
 
 endif()

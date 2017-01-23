@@ -6,8 +6,8 @@
   <xacro:property name="base_y_size" value="0.60000" />
   <xacro:property name="base_z_size" value="0.66000" />
 
-  <xacro:property name="wheelbase" value="1.22" />
-  <xacro:property name="track" value="1.23" />
+  <xacro:property name="wheelbase" value="1.9" />
+  <xacro:property name="track" value="1.1" />
 
   <xacro:macro name="chassis">
     <!-- Base footprint is on the ground under the robot -->

@@ -52,7 +52,7 @@ class AckermannControllerTest : public ::testing::Test
 public:
 
   AckermannControllerTest()
-  : cmd_pub(nh.advertise<geometry_msgs::Twist>("cmd_vel", 100))
+  : cmd_twist_pub(nh.advertise<geometry_msgs::Twist>("cmd_vel", 100))
   , odom_sub(nh.subscribe("odom", 100, &AckermannControllerTest::odomCallback, this))
   , start_srv(nh.serviceClient<std_srvs::Empty>("start"))
   , stop_srv(nh.serviceClient<std_srvs::Empty>("stop"))
@@ -65,15 +65,15 @@ public:
   }
 
   nav_msgs::Odometry getLastOdom(){ return last_odom; }
-  void publish(geometry_msgs::Twist cmd_vel){ cmd_pub.publish(cmd_vel); }
-  bool isControllerAlive(){ return (odom_sub.getNumPublishers() > 0) && (cmd_pub.getNumSubscribers() > 0); }
+  void publish(geometry_msgs::Twist cmd_vel){ cmd_twist_pub.publish(cmd_vel); }
+  bool isControllerAlive(){ return (odom_sub.getNumPublishers() > 0) && (cmd_twist_pub.getNumSubscribers() > 0); }
 
   void start(){ std_srvs::Empty srv; start_srv.call(srv); }
   void stop(){ std_srvs::Empty srv; stop_srv.call(srv); }
 
 private:
   ros::NodeHandle nh;
-  ros::Publisher cmd_pub;
+  ros::Publisher cmd_twist_pub;
   ros::Subscriber odom_sub;
   nav_msgs::Odometry last_odom;
 

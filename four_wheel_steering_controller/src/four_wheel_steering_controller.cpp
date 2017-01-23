@@ -350,6 +350,7 @@ namespace four_wheel_steering_controller{
     double rear_left_steering = 0, rear_right_steering = 0;
     if(enable_twist_cmd_ == true)
     {
+      ROS_INFO_STREAM_THROTTLE(10, "Use twist cmd ");
       // Compute wheels velocities:
       if(fabs(curr_cmd.lin) > 0.001)
       {
@@ -385,13 +386,52 @@ namespace four_wheel_steering_controller{
     }
     else
     {
-      front_left_steering = curr_cmd.front_steering;
-      front_right_steering = curr_cmd.front_steering;
-      rear_left_steering = curr_cmd.rear_steering;
-      rear_right_steering = curr_cmd.rear_steering;
+
+      ROS_INFO_STREAM_THROTTLE(10, "Use 4ws cmd ");
+      // Compute steering angles
+      double steering_diff =  track_*(tan(curr_cmd.front_steering) - tan(curr_cmd.rear_steering))/2.0;
+      if(fabs(wheel_base_ - fabs(steering_diff)) > 0.001)
+      {
+        front_left_steering = wheel_base_*curr_cmd.front_steering/(wheel_base_-steering_diff);
+        front_right_steering = wheel_base_*curr_cmd.front_steering/(wheel_base_+steering_diff);
+        rear_left_steering = wheel_base_*curr_cmd.rear_steering/(wheel_base_+steering_diff);
+        rear_right_steering = wheel_base_*curr_cmd.rear_steering/(wheel_base_-steering_diff);
+      }
+
+      // Compute wheels velocities:
+      if(fabs(curr_cmd.lin) > 0.001)
+      {
+        //Virutal front and rear wheelbase
+        // distance between the projection of the CIR on the wheelbase and the front axle
+        double l_front = 0;
+        if(fabs(tan(front_left_steering) - tan(front_right_steering)) > 0.01)
+        {
+          l_front = tan(front_right_steering) * tan(front_left_steering) * track_
+              / (tan(front_left_steering) - tan(front_right_steering));
+        }
+        // distance between the projection of the CIR on the wheelbase and the rear axle
+        double l_rear = 0;
+        if(fabs(tan(rear_left_steering) - tan(rear_right_steering)) > 0.01)
+        {
+          l_rear = tan(rear_right_steering) * tan(rear_left_steering) * track_
+              / (tan(rear_left_steering) - tan(rear_right_steering));
+        }
+
+        double angular_speed_cmd = curr_cmd.lin * (tan(curr_cmd.front_steering)-tan(curr_cmd.rear_steering))/wheel_base_;
+
+        vel_left_front  = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin - angular_speed_cmd*track_/2,2)
+                                                                           +pow(l_front*angular_speed_cmd,2)))/wheel_radius_;
+        vel_right_front = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin + angular_speed_cmd*track_/2,2)
+                                                                           +pow(wheel_base_*angular_speed_cmd/2.0,2)))/wheel_radius_;
+        vel_left_rear = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin - angular_speed_cmd*track_/2,2)
+                                                                         +pow(wheel_base_*angular_speed_cmd/2.0,2)))/wheel_radius_;
+        vel_right_rear = copysign(1.0, curr_cmd.lin) * sqrt((pow(curr_cmd.lin + angular_speed_cmd*track_/2,2)
+                                                                          +pow(wheel_base_*angular_speed_cmd/2.0,2)))/wheel_radius_;
+      }
+
     }
 
-    ROS_DEBUG_STREAM_THROTTLE(10, "vel_left_rear "<<vel_left_rear);
+    ROS_INFO_STREAM_THROTTLE(10, "vel_left_rear "<<vel_left_rear<<" front_right_steering "<<front_right_steering);
     // Set wheels velocities:
     if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {
@@ -452,7 +492,7 @@ namespace four_wheel_steering_controller{
       command_struct_.lin   = command.linear.x;
       command_struct_.stamp = ros::Time::now();
       command_.writeFromNonRT (command_struct_);
-      ROS_DEBUG_STREAM_NAMED(name_,
+      ROS_INFO_STREAM_NAMED(name_,
                              "Added values to command. "
                              << "Ang: "   << command_struct_.ang << ", "
                              << "Lin: "   << command_struct_.lin << ", "
@@ -473,7 +513,7 @@ namespace four_wheel_steering_controller{
       command_struct_four_wheel_steering_.lin   = command.speed;
       command_struct_four_wheel_steering_.stamp = ros::Time::now();
       command_four_wheel_steering_.writeFromNonRT (command_struct_four_wheel_steering_);
-      ROS_DEBUG_STREAM_NAMED(name_,
+      ROS_INFO_STREAM_NAMED(name_,
                              "Added values to command. "
                              << "Steering front : "   << command_struct_four_wheel_steering_.front_steering << ", "
                              << "Steering rear : "   << command_struct_four_wheel_steering_.rear_steering << ", "

@@ -34,6 +34,7 @@
 #include <ros/ros.h>
 
 #include <geometry_msgs/Twist.h>
+#include <four_wheel_steering_msgs/FourWheelSteeringDrive.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/tf.h>
 
@@ -52,7 +53,8 @@ class FourWheelSteeringControllerTest : public ::testing::Test
 public:
 
   FourWheelSteeringControllerTest()
-  : cmd_pub(nh.advertise<geometry_msgs::Twist>("cmd_vel", 100))
+  : cmd_twist_pub(nh.advertise<geometry_msgs::Twist>("cmd_vel", 100))
+  , cmd_4ws_pub(nh.advertise<four_wheel_steering_msgs::FourWheelSteeringDrive>("cmd_four_wheel_steering", 100))
   , odom_sub(nh.subscribe("odom", 100, &FourWheelSteeringControllerTest::odomCallback, this))
   , start_srv(nh.serviceClient<std_srvs::Empty>("start"))
   , stop_srv(nh.serviceClient<std_srvs::Empty>("stop"))
@@ -65,15 +67,22 @@ public:
   }
 
   nav_msgs::Odometry getLastOdom(){ return last_odom; }
-  void publish(geometry_msgs::Twist cmd_vel){ cmd_pub.publish(cmd_vel); }
-  bool isControllerAlive(){ return (odom_sub.getNumPublishers() > 0) && (cmd_pub.getNumSubscribers() > 0); }
+  void publish(geometry_msgs::Twist cmd_vel){
+    ROS_ERROR_STREAM("Publish twist cmd");
+    cmd_twist_pub.publish(cmd_vel); }
+  void publish_4ws(four_wheel_steering_msgs::FourWheelSteeringDrive cmd_vel)
+  {
+    ROS_ERROR_STREAM("Publish 4ws cmd");
+    cmd_4ws_pub.publish(cmd_vel); }
+  bool isControllerAlive(){ return (odom_sub.getNumPublishers() > 0)
+        && ((cmd_twist_pub.getNumSubscribers() > 0) || (cmd_4ws_pub.getNumSubscribers() > 0)); }
 
   void start(){ std_srvs::Empty srv; start_srv.call(srv); }
   void stop(){ std_srvs::Empty srv; stop_srv.call(srv); }
 
 private:
   ros::NodeHandle nh;
-  ros::Publisher cmd_pub;
+  ros::Publisher cmd_twist_pub, cmd_4ws_pub;
   ros::Subscriber odom_sub;
   nav_msgs::Odometry last_odom;
 
