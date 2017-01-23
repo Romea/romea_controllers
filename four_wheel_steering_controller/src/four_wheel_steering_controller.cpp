@@ -350,7 +350,6 @@ namespace four_wheel_steering_controller{
     double rear_left_steering = 0, rear_right_steering = 0;
     if(enable_twist_cmd_ == true)
     {
-      ROS_INFO_STREAM_THROTTLE(10, "Use twist cmd ");
       // Compute wheels velocities:
       if(fabs(curr_cmd.lin) > 0.001)
       {
@@ -387,8 +386,6 @@ namespace four_wheel_steering_controller{
     }
     else
     {
-
-      ROS_INFO_STREAM_THROTTLE(10, "Use 4ws cmd ");
       // Compute steering angles
       double steering_diff =  track_*(tan(curr_cmd.front_steering) - tan(curr_cmd.rear_steering))/2.0;
       if(fabs(wheel_base_ - fabs(steering_diff)) > 0.001)
@@ -493,7 +490,7 @@ namespace four_wheel_steering_controller{
       command_struct_.lin   = command.linear.x;
       command_struct_.stamp = ros::Time::now();
       command_.writeFromNonRT (command_struct_);
-      ROS_INFO_STREAM_NAMED(name_,
+      ROS_DEBUG_STREAM_NAMED(name_,
                              "Added values to command. "
                              << "Ang: "   << command_struct_.ang << ", "
                              << "Lin: "   << command_struct_.lin << ", "
@@ -514,7 +511,7 @@ namespace four_wheel_steering_controller{
       command_struct_four_wheel_steering_.lin   = command.speed;
       command_struct_four_wheel_steering_.stamp = ros::Time::now();
       command_four_wheel_steering_.writeFromNonRT (command_struct_four_wheel_steering_);
-      ROS_INFO_STREAM_NAMED(name_,
+      ROS_DEBUG_STREAM_NAMED(name_,
                              "Added values to command. "
                              << "Steering front : "   << command_struct_four_wheel_steering_.front_steering << ", "
                              << "Steering rear : "   << command_struct_four_wheel_steering_.rear_steering << ", "

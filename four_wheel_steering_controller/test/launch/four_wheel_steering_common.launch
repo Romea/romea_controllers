@@ -36,8 +36,6 @@
         type="rqt_plot"
         args="/four_wheel_steering_controller/odom/twist/twist/linear/x" />-->
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find four_wheel_steering_controller)/test/config/view_odom.rviz"/>
-
-  <node name="graph" pkg="rqt_graph" type="rqt_graph" />
+  <!--<node name="rviz" pkg="rviz" type="rviz" args="-d $(find four_wheel_steering_controller)/test/config/view_odom.rviz"/>-->
 
 </launch>
