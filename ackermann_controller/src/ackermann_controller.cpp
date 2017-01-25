@@ -299,8 +299,13 @@ namespace ackermann_controller{
         front_left_steering_pos = front_steering_joints_[0].getPosition();
         front_right_steering_pos = front_steering_joints_[1].getPosition();
       }
-      double front_steering_pos = atan2(2, 1/tan(front_left_steering_pos) + 1/tan(front_right_steering_pos));
-
+      double front_steering_pos = 0.0;
+      if(fabs(front_left_steering_pos) > 0.001 || fabs(front_right_steering_pos) > 0.001)
+      {
+        front_steering_pos = atan(2*tan(front_left_steering_pos)*tan(front_right_steering_pos)/
+                                        (tan(front_left_steering_pos) + tan(front_right_steering_pos)));
+      }
+      ROS_DEBUG_STREAM_THROTTLE(1, "front_left_steering_pos "<<front_left_steering_pos<<" front_right_steering_pos "<<front_right_steering_pos<<" front_steering_pos "<<front_steering_pos);
       // Estimate linear and angular velocity using joint information
       odometry_.update(front_pos, front_vel, rear_pos, rear_vel, front_steering_pos, time);
     }

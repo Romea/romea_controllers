@@ -268,12 +268,20 @@ namespace four_wheel_steering_controller{
       if (std::isnan(fl_steering) || std::isnan(fr_steering)
           || std::isnan(rl_steering) || std::isnan(rr_steering))
         return;
-      double front_steering_pos = atan2(2, 1/tan(fl_steering)
-                                          + 1/tan(fr_steering));
-      double rear_steering_pos = atan2(2, 1/tan(rl_steering)
-                                          + 1/tan(rr_steering));
+      double front_steering_pos = 0.0;
+      if(fabs(fl_steering) > 0.001 || fabs(fr_steering) > 0.001)
+      {
+        front_steering_pos = atan(2*tan(fl_steering)*tan(fr_steering)/
+                                        (tan(fl_steering) + tan(fr_steering)));
+      }
+      double rear_steering_pos = 0.0;
+      if(fabs(rl_steering) > 0.001 || fabs(rr_steering) > 0.001)
+      {
+        rear_steering_pos = atan(2*tan(rl_steering)*tan(rr_steering)/
+                                       (tan(rl_steering) + tan(rr_steering)));
+      }
 
-      ROS_DEBUG_STREAM_THROTTLE(10, "rl_speed "<<rl_speed<<" front_steering_pos "<<front_steering_pos<<" rear_steering_pos "<<rear_steering_pos);
+      ROS_DEBUG_STREAM_THROTTLE(1, "rl_steering "<<rl_steering<<" rr_steering "<<rr_steering<<" rear_steering_pos "<<rear_steering_pos);
       // Estimate linear and angular velocity using joint information
       odometry_.update(fl_speed, fr_speed, rl_speed, rr_speed,
                        front_steering_pos, rear_steering_pos, time);
