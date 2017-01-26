@@ -437,7 +437,7 @@ namespace four_wheel_steering_controller{
 
     }
 
-    ROS_INFO_STREAM_THROTTLE(10, "vel_left_rear "<<vel_left_rear<<" front_right_steering "<<front_right_steering);
+    ROS_DEBUG_STREAM_THROTTLE(1, "vel_left_rear "<<vel_left_rear<<" front_right_steering "<<front_right_steering);
     // Set wheels velocities:
     if(front_wheel_joints_.size() == 2 && rear_wheel_joints_.size() == 2)
     {

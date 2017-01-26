@@ -38,21 +38,20 @@ namespace four_wheel_steering_controller
                         const double &rl_speed, const double &rr_speed,
                         double front_steering, double rear_steering, const ros::Time &time)
   {
-    const double front_tmp = cos(front_steering)*(tan(front_steering)-tan(rear_steering))/wheel_base_;
-    const double front_linear_speed = wheel_radius_ * copysign(1.0, fl_speed+fr_speed)*
-        sqrt((pow(fl_speed,2)+pow(fr_speed,2))/(2+pow(track_*front_tmp,2)/2.0));
+//    const double front_tmp = cos(front_steering)*(tan(front_steering)-tan(rear_steering))/wheel_base_;
+//    const double front_linear_speed = wheel_radius_ * copysign(1.0, fl_speed+fr_speed)*
+//        sqrt((pow(fl_speed,2)+pow(fr_speed,2))/(2+pow(track_*front_tmp,2)/2.0));
 
     const double rear_tmp = cos(rear_steering)*(tan(front_steering)-tan(rear_steering))/wheel_base_;
     const double rear_linear_speed = wheel_radius_ * copysign(1.0, rl_speed+rr_speed)*
         sqrt((pow(rl_speed,2)+pow(rr_speed,2))/(2+pow(track_*rear_tmp,2)/2.0));
 
-    std::cout<<"front_linear_speed "<<front_linear_speed<<" rear_linear_speed "<<rear_linear_speed<<std::endl;
-    angular_ = (front_linear_speed*front_tmp + rear_linear_speed*rear_tmp)/2.0;
+    angular_ = rear_linear_speed*rear_tmp;
 
-    linear_x_ = (front_linear_speed*cos(front_steering) + rear_linear_speed*cos(rear_steering))/2.0;
-    linear_y_ = (front_linear_speed*sin(front_steering) + rear_linear_speed*sin(rear_steering))/2.0
+    linear_x_ = rear_linear_speed*cos(rear_steering);
+    linear_y_ = rear_linear_speed*sin(rear_steering)
                 + wheel_base_*angular_/2.0;
-    linear_ =  copysign(1.0, rear_linear_speed+front_linear_speed)*sqrt(pow(linear_x_,2)+pow(linear_y_,2));
+    linear_ =  copysign(1.0, rear_linear_speed)*sqrt(pow(linear_x_,2)+pow(linear_y_,2));
 
     /// Compute x, y and heading using velocity
     const double dt = (time - last_update_timestamp_).toSec();
