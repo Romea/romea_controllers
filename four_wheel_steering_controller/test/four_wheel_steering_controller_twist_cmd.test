@@ -3,9 +3,9 @@
   <include file="$(find four_wheel_steering_controller)/test/launch/four_wheel_steering_common.launch" />
 
   <!-- Controller test -->
-  <test test-name="four_wheel_steering_controller_test"
+  <test test-name="four_wheel_steering_controller_twist_cmd_test"
         pkg="four_wheel_steering_controller"
-        type="four_wheel_steering_controller_test"
+        type="four_wheel_steering_controller_twist_cmd_test"
         time-limit="80.0">
     <remap from="cmd_vel" to="four_wheel_steering_controller/cmd_vel" />
     <remap from="odom" to="four_wheel_steering_controller/odom" />

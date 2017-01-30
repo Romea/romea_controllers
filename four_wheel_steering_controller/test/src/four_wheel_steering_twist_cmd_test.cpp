@@ -115,7 +115,7 @@ TEST_F(FourWheelSteeringControllerTest, testOdomFrame)
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "four_wheel_steering_test");
+  ros::init(argc, argv, "four_wheel_steering_twist_cmd_test");
 
   ros::AsyncSpinner spinner(1);
   spinner.start();

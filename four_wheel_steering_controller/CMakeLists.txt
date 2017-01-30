@@ -50,10 +50,10 @@ if(CATKIN_ENABLE_TESTING)
 
   add_dependencies(tests four_wheel_steering)
 
-  add_rostest_gtest(four_wheel_steering_controller_test
-                    test/four_wheel_steering_controller.test
-                    test/src/four_wheel_steering_test.cpp)
-  target_link_libraries(four_wheel_steering_controller_test ${catkin_LIBRARIES})
+  add_rostest_gtest(four_wheel_steering_controller_twist_cmd_test
+                    test/four_wheel_steering_controller_twist_cmd.test
+                    test/src/four_wheel_steering_twist_cmd_test.cpp)
+  target_link_libraries(four_wheel_steering_controller_twist_cmd_test ${catkin_LIBRARIES})
 
   add_rostest_gtest(four_wheel_steering_controller_4ws_cmd_test
                     test/four_wheel_steering_controller_4ws_cmd.test

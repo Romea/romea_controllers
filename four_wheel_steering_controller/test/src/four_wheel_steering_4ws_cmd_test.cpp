@@ -50,6 +50,59 @@ TEST_F(FourWheelSteeringControllerTest, testForward)
   EXPECT_LT(fabs(new_odom.twist.twist.angular.z), EPS);
 }
 
+TEST_F(FourWheelSteeringControllerTest, testCrab)
+{
+  // wait for ROS
+  while(!isControllerAlive())
+  {
+    ros::Duration(0.1).sleep();
+  }
+  // zero everything before test
+  four_wheel_steering_msgs::FourWheelSteeringDrive cmd_vel;
+  cmd_vel.speed = 0.0;
+  cmd_vel.front_steering_angle = 0.0;
+  cmd_vel.rear_steering_angle = 0.0;
+  publish_4ws(cmd_vel);
+  ros::Duration(0.1).sleep();
+  // get initial odom
+  nav_msgs::Odometry old_odom = getLastOdom();
+  // send a velocityand steering command
+  cmd_vel.speed = 0.2;
+  cmd_vel.front_steering_angle = M_PI/8.0;
+  cmd_vel.rear_steering_angle = cmd_vel.front_steering_angle;
+  publish_4ws(cmd_vel);
+  // wait for 10s
+  double travel_time = 8.0;
+  ros::Duration(travel_time).sleep();
+
+  nav_msgs::Odometry new_odom = getLastOdom();
+
+  // check if the robot traveled 5 meter in XY plane, changes in z should be ~~0
+  const double dx = new_odom.pose.pose.position.x - old_odom.pose.pose.position.x;
+  const double dy = new_odom.pose.pose.position.y - old_odom.pose.pose.position.y;
+  const double dz = new_odom.pose.pose.position.z - old_odom.pose.pose.position.z;
+  EXPECT_NEAR(sqrt(dx*dx + dy*dy), cmd_vel.speed*travel_time, POSITION_TOLERANCE);
+  EXPECT_NEAR(dx, cmd_vel.speed*travel_time*cos(cmd_vel.front_steering_angle), POSITION_TOLERANCE);
+  EXPECT_NEAR(dy, cmd_vel.speed*travel_time*sin(cmd_vel.front_steering_angle), POSITION_TOLERANCE);
+  EXPECT_LT(fabs(dz), EPS);
+
+  // convert to rpy and test that way
+  double roll_old, pitch_old, yaw_old;
+  double roll_new, pitch_new, yaw_new;
+  tf::Matrix3x3(tfQuatFromGeomQuat(old_odom.pose.pose.orientation)).getRPY(roll_old, pitch_old, yaw_old);
+  tf::Matrix3x3(tfQuatFromGeomQuat(new_odom.pose.pose.orientation)).getRPY(roll_new, pitch_new, yaw_new);
+  EXPECT_LT(fabs(roll_new - roll_old), EPS);
+  EXPECT_LT(fabs(pitch_new - pitch_old), EPS);
+  EXPECT_LT(fabs(yaw_new - yaw_old), EPS);
+  EXPECT_NEAR(fabs(new_odom.twist.twist.linear.x), cmd_vel.speed*cos(cmd_vel.front_steering_angle), EPS);
+  EXPECT_NEAR(fabs(new_odom.twist.twist.linear.y), cmd_vel.speed*sin(cmd_vel.front_steering_angle), EPS);
+  EXPECT_LT(fabs(new_odom.twist.twist.linear.z), EPS);
+
+  EXPECT_LT(fabs(new_odom.twist.twist.angular.x), EPS);
+  EXPECT_LT(fabs(new_odom.twist.twist.angular.y), EPS);
+  EXPECT_LT(fabs(new_odom.twist.twist.angular.z), EPS);
+}
+
 TEST_F(FourWheelSteeringControllerTest, testSymmetricTurn)
 {
   // wait for ROS
@@ -176,7 +229,7 @@ TEST_F(FourWheelSteeringControllerTest, testOdomFrame)
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "four_wheel_steering_test");
+  ros::init(argc, argv, "four_wheel_steering_4ws_cmd_test");
 
   ros::AsyncSpinner spinner(1);
   spinner.start();
