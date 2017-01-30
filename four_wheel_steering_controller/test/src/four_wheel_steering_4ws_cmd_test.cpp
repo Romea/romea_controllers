@@ -150,8 +150,8 @@ TEST_F(FourWheelSteeringControllerTest, testNonSymmetricTurn)
   EXPECT_LT(fabs(pitch_new - pitch_old), EPS);
   EXPECT_NEAR(fabs(yaw_new - yaw_old), M_PI, ORIENTATION_TOLERANCE);
 
-  EXPECT_NEAR(fabs(new_odom.twist.twist.linear.x), cmd_vel.speed, EPS);
-  EXPECT_LT(fabs(new_odom.twist.twist.linear.y), EPS);
+  EXPECT_NEAR(sqrt(pow(new_odom.twist.twist.linear.x,2)+pow(new_odom.twist.twist.linear.y,2)),
+              fabs(cmd_vel.speed), EPS);
   EXPECT_LT(fabs(new_odom.twist.twist.linear.z), EPS);
 
   EXPECT_LT(fabs(new_odom.twist.twist.angular.x), EPS);
