@@ -1,7 +1,7 @@
 <package format="2">
   <name>ackermann_controller</name>
   <version>0.2.0</version>
-  <description>Controller for a differential drive mobile base.</description>
+  <description>Controller for a ackermann mobile base.</description>
   <maintainer email="vincent.rousseau@irstea.fr">Vincent Rousseau</maintainer>
   <author email="vincent.rousseau@irstea.fr">Vincent Rousseau</author>
 
