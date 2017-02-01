@@ -2,8 +2,8 @@
 Changelog for package ackermann_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.1 (2017-02-01)
+------------------
 * [ackermann] Change package description
 * Update computation of virtual steering
 * Update test for four_wheel_steering_controller
