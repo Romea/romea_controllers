@@ -2,6 +2,19 @@
 Changelog for package four_wheel_steering_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [4ws] Add crab travel test
+* [4ws] Update test
+* [4ws] Add test on non symmetric steering
+* [4ws] Revert to use only rear speed for odom
+* [4ws] Use front and rear speed for odometry
+* Update computation of virtual steering
+* [4ws] Remove debug
+* [4ws] Update command with 4ws msg
+* Update test for four_wheel_steering_controller
+* Contributors: Vincent Rousseau
+
 0.2.0 (2017-01-19)
 ------------------
 * [4ws] Only enable twist cmd

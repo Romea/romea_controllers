@@ -2,6 +2,9 @@
 Changelog for package four_wheel_steering_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.2.0 (2017-01-19)
 ------------------
 * Update CMakelists and package format

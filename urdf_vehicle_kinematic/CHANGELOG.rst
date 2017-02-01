@@ -2,6 +2,11 @@
 Changelog for package urdf_vehicle_kinematic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update computation of virtual steering
+* Contributors: Vincent Rousseau
+
 0.2.0 (2017-01-19)
 ------------------
 * Create the package urdf_vehicle_kinematic
