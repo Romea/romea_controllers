@@ -7,6 +7,10 @@
 
   <license>GPLv3</license>
 
+  <url type="website">http://ros.org/wiki/four_wheel_steering_controller</url>
+  <url type="repository">https://github.com/romea/romea_controllers.git</url>
+  <url type="bugtracker">https://github.com/romea/romea_controllers/issues</url>
+
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>controller_interface</depend>

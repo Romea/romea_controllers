@@ -5,12 +5,12 @@
     ROS messages for robots using FourWheelSteering.
   </description>
   <maintainer email="vincent.rousseau@irstea.fr">Vincent Rousseau</maintainer>
-  <author>Vincent Rousseau</author>
+  <author email="vincent.rousseau@irstea.fr">Vincent Rousseau</author>
   <license>BSD</license>
 
   <url type="website">http://ros.org/wiki/four_wheel_steering_msgs</url>
-  <url type="repository">https://github.com/romea/four_wheel_steering_msgs.git</url>
-  <url type="bugtracker">https://github.com/romea/four_wheel_steering_msgs/issues</url>
+  <url type="repository">https://github.com/romea/romea_controllers.git</url>
+  <url type="bugtracker">https://github.com/romea/romea_controllers/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

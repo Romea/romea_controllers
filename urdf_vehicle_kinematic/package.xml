@@ -10,6 +10,10 @@
 
   <author email="vincent.rousseau@irstea.fr">Vincent Rousseau</author>
 
+  <url type="website">http://ros.org/wiki/urdf_vehicle_kinematic</url>
+  <url type="repository">https://github.com/romea/romea_controllers.git</url>
+  <url type="bugtracker">https://github.com/romea/romea_controllers/issues</url>
+
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
   <depend>urdf</depend>
