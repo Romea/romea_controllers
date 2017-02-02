@@ -2,6 +2,11 @@
 Changelog for package four_wheel_steering_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add test depend
+* Contributors: Vincent Rousseau
+
 0.2.1 (2017-02-01)
 ------------------
 * [4ws] Add crab travel test

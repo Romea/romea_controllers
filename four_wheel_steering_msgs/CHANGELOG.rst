@@ -2,6 +2,9 @@
 Changelog for package four_wheel_steering_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.2.1 (2017-02-01)
 ------------------
 
