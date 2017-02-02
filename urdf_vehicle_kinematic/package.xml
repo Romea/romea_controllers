@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>urdf_vehicle_kinematic</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>Extract kinematic value of a vehicle from urdf</description>
 
   <maintainer email="vincent.rousseau@irstea.fr">Vincent Rousseau</maintainer>

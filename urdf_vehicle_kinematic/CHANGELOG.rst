@@ -2,8 +2,8 @@
 Changelog for package urdf_vehicle_kinematic
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.2 (2017-02-02)
+------------------
 * [urdf_kinematic] Install header file
 * Contributors: Vincent Rousseau
 

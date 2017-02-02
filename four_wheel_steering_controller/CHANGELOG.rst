@@ -2,8 +2,8 @@
 Changelog for package four_wheel_steering_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.2 (2017-02-02)
+------------------
 * Add test depend
 * Contributors: Vincent Rousseau
 
