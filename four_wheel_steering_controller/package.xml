@@ -16,6 +16,10 @@
   <depend>tf</depend>
   <depend>urdf_vehicle_kinematic</depend>
 
+  <test_depend>rostest</test_depend>
+  <test_depend>std_srvs</test_depend>
+  <test_depend>controller_manager</test_depend>
+
   <export>
     <controller_interface plugin="${prefix}/four_wheel_steering_controller_plugins.xml"/>
   </export>
