@@ -400,8 +400,8 @@ namespace four_wheel_steering_controller{
       {
         front_left_steering = wheel_base_*curr_cmd.front_steering/(wheel_base_-steering_diff);
         front_right_steering = wheel_base_*curr_cmd.front_steering/(wheel_base_+steering_diff);
-        rear_left_steering = wheel_base_*curr_cmd.rear_steering/(wheel_base_+steering_diff);
-        rear_right_steering = wheel_base_*curr_cmd.rear_steering/(wheel_base_-steering_diff);
+        rear_left_steering = wheel_base_*curr_cmd.rear_steering/(wheel_base_-steering_diff);
+        rear_right_steering = wheel_base_*curr_cmd.rear_steering/(wheel_base_+steering_diff);
       }
 
       // Compute wheels velocities:
