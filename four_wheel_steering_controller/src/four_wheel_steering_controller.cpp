@@ -188,7 +188,7 @@ namespace four_wheel_steering_controller{
 
     urdf_vehicle_kinematic::UrdfVehicleKinematic uvk(root_nh, base_frame_id_);
     if(lookup_track)
-      if(!uvk.getDistanceBetweenJoints(front_wheel_names[0], front_wheel_names[1], track_))
+      if(!uvk.getDistanceBetweenJoints(front_steering_names[0], front_steering_names[1], track_))
         return false;
       else
         controller_nh.setParam("track",track_);
