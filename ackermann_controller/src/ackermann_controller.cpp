@@ -402,20 +402,6 @@ namespace ackermann_controller{
         front_right_steering = atan(curr_cmd.ang*wheel_base_ /
                                      (odometry_.getLinear() + curr_cmd.ang*track_/2.0));
       }
-      else
-      {
-        if(fabs(curr_cmd.ang) > std::numeric_limits<double>::epsilon())
-        {
-          // TODO CIR is not converging, do not put left and right to the same limit
-          front_left_steering = copysign(steering_limit_, curr_cmd.ang*odometry_.getLinear());
-          front_right_steering = copysign(steering_limit_, curr_cmd.ang*odometry_.getLinear());
-        }
-        else
-        {
-          front_left_steering = 0.0;
-          front_right_steering = 0.0;
-        }
-      }
     }
     else
     {
@@ -425,7 +411,8 @@ namespace ackermann_controller{
                                    1 + tan(curr_cmd.steering)*track_/(2*wheel_base_));
     }
 
-    /// TODO check limits to not apply the same steering on right and left when saturated !
+    /// check limits to not apply the same steering on right and left when saturated !
+    handleSteeringSaturation(front_left_steering, front_right_steering);
 
     if(front_steering_joints_.size() == 2)
     {
@@ -604,6 +591,20 @@ namespace ackermann_controller{
     tf_odom_pub_->msg_.transforms[0].transform.translation.z = 0.0;
     tf_odom_pub_->msg_.transforms[0].child_frame_id = base_frame_id_;
     tf_odom_pub_->msg_.transforms[0].header.frame_id = "odom";
+  }
+
+  void AckermannController::handleSteeringSaturation(double &front_left_steering, double &front_right_steering)
+  {
+    if(front_left_steering > steering_limit_)
+    {
+      front_left_steering = copysign(steering_limit_, front_left_steering);
+      front_right_steering = atan(wheel_base_/(wheel_base_/tan(front_left_steering) + track_));
+    }
+    else if(front_right_steering < -steering_limit_)
+    {
+      front_right_steering = copysign(steering_limit_, front_right_steering);
+      front_left_steering = atan(wheel_base_/(wheel_base_/tan(front_right_steering) - track_));
+    }
   }
 
 } // namespace ackermann_controller

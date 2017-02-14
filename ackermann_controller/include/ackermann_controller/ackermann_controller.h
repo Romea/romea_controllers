@@ -18,7 +18,8 @@ namespace ackermann_controller{
   /**
    * This class makes some assumptions on the model of the robot:
    *  - the rotation axes of wheels are collinear
-   *  - the wheels are identical in radius
+   *  - the front wheels are identical in radius
+   *  - the rear wheels are identical in radius
    * Additional assumptions to not duplicate information readily available in the URDF:
    *  - the wheels have the same parent frame
    *  - a wheel collision geometry is a cylinder in the urdf
@@ -32,9 +33,10 @@ namespace ackermann_controller{
 
     /**
      * \brief Initialize controller
-     * \param hw            Velocity joint interface for the wheels
-     * \param root_nh       Node handle at root namespace
-     * \param controller_nh Node handle inside the controller namespace
+     * \param robot_hw          Velocity joint interface for the wheels
+     * \param root_nh           Node handle at root namespace
+     * \param controller_nh     Node handle inside the controller namespace
+     * \param claimed_resources Vector of JointInterfaces claimed during init
      */
     virtual bool initRequest(hardware_interface::RobotHW *const robot_hw,
               ros::NodeHandle& root_nh,
@@ -68,7 +70,7 @@ namespace ackermann_controller{
      * \brief Stops controller
      * \param time Current time
      */
-    void stopping(const ros::Time& /*time*/);
+    void stopping(const ros::Time& time);
 
   private:
     std::string name_;
@@ -174,6 +176,20 @@ namespace ackermann_controller{
      * \param controller_nh Node handle inside the controller namespace
      */
     void setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
+
+    /**
+     * \brief Update the steering command with steering joint limitation to handle saturation
+     * \f[ tan(\delta_{FR})=\frac{wheel_base}{\frac{wheel\_base}{tan(\delta_{FL})}+track)}
+     * \f]
+     * \f[ tan(\delta_{FL})=\frac{wheel_base}
+     *                           {\frac{wheel\_base}
+     *                                 {tan(\delta_{FR})}
+     *                           -track)}
+     * \f]
+     * \param front_left_steering \f$ \delta_{FL} \f$
+     * \param front_right_steering \f$ \delta_{FR}  \f$
+     */
+    void handleSteeringSaturation(double& front_left_steering, double& front_right_steering);
 
   };
 
