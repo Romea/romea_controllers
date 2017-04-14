@@ -4,7 +4,7 @@
 #include <pluginlib/class_list_macros.h>
 
 #include <nav_msgs/Odometry.h>
-#include <four_wheel_steering_msgs/FourWheelSteeringDrive.h>
+#include <four_wheel_steering_msgs/FourWheelSteering.h>
 #include <tf/tfMessage.h>
 
 #include <realtime_tools/realtime_buffer.h>
@@ -152,7 +152,7 @@ namespace four_wheel_steering_controller{
      * \brief Velocity command callback
      * \param command Velocity command message (twist)
      */
-    void cmdFourWheelSteeringCallback(const four_wheel_steering_msgs::FourWheelSteeringDrive& command);
+    void cmdFourWheelSteeringCallback(const four_wheel_steering_msgs::FourWheelSteering& command);
 
     /**
      * \brief Get the wheel names from a wheel param

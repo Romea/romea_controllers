@@ -11,7 +11,7 @@ find_package(Boost REQUIRED)
 
 add_message_files(
   DIRECTORY msg
-  FILES FourWheelSteeringDrive.msg FourWheelSteeringDriveStamped.msg)
+  FILES FourWheelSteering.msg FourWheelSteeringStamped.msg)
 
 generate_messages(DEPENDENCIES std_msgs)
 

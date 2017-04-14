@@ -34,7 +34,7 @@
 #include <ros/ros.h>
 
 #include <geometry_msgs/Twist.h>
-#include <four_wheel_steering_msgs/FourWheelSteeringDrive.h>
+#include <four_wheel_steering_msgs/FourWheelSteering.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/tf.h>
 
@@ -54,7 +54,7 @@ public:
 
   FourWheelSteeringControllerTest()
   : cmd_twist_pub(nh.advertise<geometry_msgs::Twist>("cmd_vel", 100))
-  , cmd_4ws_pub(nh.advertise<four_wheel_steering_msgs::FourWheelSteeringDrive>("cmd_four_wheel_steering", 100))
+  , cmd_4ws_pub(nh.advertise<four_wheel_steering_msgs::FourWheelSteering>("cmd_four_wheel_steering", 100))
   , odom_sub(nh.subscribe("odom", 100, &FourWheelSteeringControllerTest::odomCallback, this))
   , start_srv(nh.serviceClient<std_srvs::Empty>("start"))
   , stop_srv(nh.serviceClient<std_srvs::Empty>("stop"))
@@ -71,7 +71,7 @@ public:
   {
     cmd_twist_pub.publish(cmd_vel);
   }
-  void publish_4ws(four_wheel_steering_msgs::FourWheelSteeringDrive cmd_vel)
+  void publish_4ws(four_wheel_steering_msgs::FourWheelSteering cmd_vel)
   {
     cmd_4ws_pub.publish(cmd_vel);
   }

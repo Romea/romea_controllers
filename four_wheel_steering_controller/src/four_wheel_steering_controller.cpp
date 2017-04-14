@@ -510,7 +510,7 @@ namespace four_wheel_steering_controller{
     }
   }
 
-  void FourWheelSteeringController::cmdFourWheelSteeringCallback(const four_wheel_steering_msgs::FourWheelSteeringDrive& command)
+  void FourWheelSteeringController::cmdFourWheelSteeringCallback(const four_wheel_steering_msgs::FourWheelSteering& command)
   {
     if (isRunning())
     {

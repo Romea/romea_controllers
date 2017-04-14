@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from math import pi
-from four_wheel_steering_msgs.msg import FourWheelSteeringDrive
+from four_wheel_steering_msgs.msg import FourWheelSteering
 from sensor_msgs.msg import Joy
 
 class TeleopFourWheelSteeringJoy():
@@ -20,12 +20,12 @@ class TeleopFourWheelSteeringJoy():
         self.last_reverse_speed = 0.0
 
         rospy.Subscriber("joy", Joy, self.callback)
-        self.pub = rospy.Publisher('cmd_four_wheel_steering', FourWheelSteeringDrive, queue_size=10)
+        self.pub = rospy.Publisher('cmd_four_wheel_steering', FourWheelSteering, queue_size=10)
 
         rospy.spin()
 
     def callback(self, data):
-        four_wheel_steering_msg = FourWheelSteeringDrive()
+        four_wheel_steering_msg = FourWheelSteering()
 
         #rospy.loginfo(rospy.get_caller_id() + " axes" + str(data.axes))
         linear_forward = 1.0

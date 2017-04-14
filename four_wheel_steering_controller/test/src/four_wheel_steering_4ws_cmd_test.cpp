@@ -10,7 +10,7 @@ TEST_F(FourWheelSteeringControllerTest, testForward)
     ros::Duration(0.1).sleep();
   }
   // zero everything before test
-  four_wheel_steering_msgs::FourWheelSteeringDrive cmd_vel;
+  four_wheel_steering_msgs::FourWheelSteering cmd_vel;
   cmd_vel.speed = 0.0;
   cmd_vel.front_steering_angle = 0.0;
   cmd_vel.rear_steering_angle = 0.0;
@@ -58,7 +58,7 @@ TEST_F(FourWheelSteeringControllerTest, testCrab)
     ros::Duration(0.1).sleep();
   }
   // zero everything before test
-  four_wheel_steering_msgs::FourWheelSteeringDrive cmd_vel;
+  four_wheel_steering_msgs::FourWheelSteering cmd_vel;
   cmd_vel.speed = 0.0;
   cmd_vel.front_steering_angle = 0.0;
   cmd_vel.rear_steering_angle = 0.0;
@@ -111,7 +111,7 @@ TEST_F(FourWheelSteeringControllerTest, testSymmetricTurn)
     ros::Duration(0.1).sleep();
   }
   // zero everything before test
-  four_wheel_steering_msgs::FourWheelSteeringDrive cmd_vel;
+  four_wheel_steering_msgs::FourWheelSteering cmd_vel;
   cmd_vel.speed = 0.0;
   cmd_vel.front_steering_angle = 0.0;
   cmd_vel.rear_steering_angle = 0.0;
@@ -165,7 +165,7 @@ TEST_F(FourWheelSteeringControllerTest, testNonSymmetricTurn)
     ros::Duration(0.1).sleep();
   }
   // zero everything before test
-  four_wheel_steering_msgs::FourWheelSteeringDrive cmd_vel;
+  four_wheel_steering_msgs::FourWheelSteering cmd_vel;
   cmd_vel.speed = 0.0;
   cmd_vel.front_steering_angle = 0.0;
   cmd_vel.rear_steering_angle = 0.0;
