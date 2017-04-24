@@ -22,7 +22,11 @@ float32 rear_steering_angle_velocity   # rate of change (radians/s)
 # center of the rear axle.
 #
 # Speed is the scalar magnitude of the velocity vector.
+# The speed value is the norm of the velocity component in x (longitudinal) 
+# and y (lateral) direction
 # Direction is forward unless the sign is negative, indicating reverse.
+# If the steering angle are equal to +/- pi/2, then the direction is left
+# unless the sign is negative, indicating right.
 #
 # Zero acceleration means change speed as quickly as
 # possible. Positive acceleration indicates an absolute
